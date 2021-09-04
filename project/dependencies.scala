@@ -91,10 +91,10 @@ object Deps {
   ).map(flexmarkDep)
 
   // Sponge API-8+
-  val pluginMeta = "org.spongepowered" % "plugin-meta" % "0.8.0-SNAPSHOT"
+  val pluginMeta = "org.spongepowered" % "plugin-meta" % "0.8.0"
 
   // mcmod.info
-  val pluginMetaMcMod = "org.spongepowered.plugin-meta" % "mcmod-info" % "0.8.0-SNAPSHOT"
+  val pluginMetaMcMod = "org.spongepowered.plugin-meta" % "mcmod-info" % "0.8.0"
 
   val javaxMail = "javax.mail"     % "mail"            % "1.4.7"
   val postgres  = "org.postgresql" % "postgresql"      % "42.2.16"
