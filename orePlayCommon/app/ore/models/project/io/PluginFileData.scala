@@ -227,14 +227,15 @@ object SpongeJsonHandler extends FileTypeHandler("META-INF/plugins.json") {
     dvs.toSeq
   }
 
-  def readDependencies(in: Iterable[PluginDependency]) : Seq[Dependency] = {
+  def readDependencies(in: Iterable[PluginDependency]): Seq[Dependency] = {
     in.map(dep =>
-      Dependency(dep.id, if (dep.version.hasRestrictions) {
-        Some(dep.version.toString)
-      } else {
-        None
-      })
-    ).toSeq
+        Dependency(dep.id, if (dep.version.hasRestrictions) {
+          Some(dep.version.toString)
+        } else {
+          None
+        })
+      )
+      .toSeq
   }
 
 }
