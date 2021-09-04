@@ -221,10 +221,12 @@ object SpongeJsonHandler extends FileTypeHandler("META-INF/plugins.json") {
       firstPlugin.description.toScala.map(dvs += StringDataValue("description", _))
       dvs += StringListValue("authors", firstPlugin.contributors().asScala.map(_.name()).toSeq)
       dvs += DependencyDataValue("dependencies", readDependencies(firstPlugin.dependencies().asScala))
+      dvs.toSeq
     } catch {
-      case NonFatal(e) => e.printStackTrace()
+      case NonFatal(e) =>
+        e.printStackTrace()
+        Nil
     }
-    dvs.toSeq
   }
 
   def readDependencies(in: Iterable[PluginDependency]): Seq[Dependency] = {
