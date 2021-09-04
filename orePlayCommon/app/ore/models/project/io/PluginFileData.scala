@@ -211,33 +211,27 @@ object ModTomlHandler extends FileTypeHandler("mod.toml") {
 object SpongeJsonHandler extends FileTypeHandler("META-INF/plugins.json") {
 
   override def getData(bufferedReader: BufferedReader): Seq[DataValue] = {
-    val dvs = new ArrayBuffer[DataValue]
     try {
       val metadata    = MetadataParser.read(bufferedReader)
-      val firstPlugin = metadata.metadata().asScala.head
-      dvs += StringDataValue("id", firstPlugin.id)
-      dvs += StringDataValue("version", firstPlugin.version.toString)
-      firstPlugin.name.toScala.map(dvs += StringDataValue("name", _))
-      firstPlugin.description.toScala.map(dvs += StringDataValue("description", _))
-      dvs += StringListValue("authors", firstPlugin.contributors().asScala.map(_.name()).toSeq)
-      dvs += DependencyDataValue("dependencies", readDependencies(firstPlugin.dependencies().asScala))
-      dvs.toSeq
+      val firstPlugin = metadata.metadata.asScala.head
+      Seq[DataValue](
+        StringDataValue("id", firstPlugin.id),
+        StringDataValue("version", firstPlugin.version.toString),
+        StringListValue("authors", firstPlugin.contributors.asScala.map(_.name).toSeq),
+        DependencyDataValue("dependencies", readDependencies(firstPlugin.dependencies.asScala))
+      ) ++ Seq(
+        firstPlugin.name.toScala.map(v => StringDataValue("name", v)),
+        firstPlugin.description.toScala.map(v => StringDataValue("description", v))
+      ).flatten
     } catch {
-      case NonFatal(e) =>
+      case NonFatal(e) => {
         e.printStackTrace()
         Nil
+      }
     }
   }
 
-  def readDependencies(in: Iterable[PluginDependency]): Seq[Dependency] = {
-    in.map(dep =>
-        Dependency(dep.id, if (dep.version.hasRestrictions) {
-          Some(dep.version.toString)
-        } else {
-          None
-        })
-      )
-      .toSeq
-  }
+  def readDependencies(in: Iterable[PluginDependency]): Seq[Dependency] =
+    in.map(dep => Dependency(dep.id, Option.when(dep.version.hasRestrictions)(dep.version.toString))).toSeq
 
 }
