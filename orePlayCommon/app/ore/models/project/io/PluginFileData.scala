@@ -213,7 +213,7 @@ object SpongeJsonHandler extends FileTypeHandler("META-INF/plugins.json") {
   override def getData(bufferedReader: BufferedReader): Seq[DataValue] = {
     val dvs = new ArrayBuffer[DataValue]
     try {
-      val metadata = MetadataParser.read(bufferedReader)
+      val metadata    = MetadataParser.read(bufferedReader)
       val firstPlugin = metadata.metadata().asScala.head
       dvs += StringDataValue("id", firstPlugin.id)
       dvs += StringDataValue("version", firstPlugin.version.toString)
@@ -228,11 +228,13 @@ object SpongeJsonHandler extends FileTypeHandler("META-INF/plugins.json") {
   }
 
   def readDependencies(in: Iterable[PluginDependency]) : Seq[Dependency] = {
-    in.map(dep => Dependency(dep.id, if (dep.version.hasRestrictions) {
+    in.map(dep =>
+      Dependency(dep.id, if (dep.version.hasRestrictions) {
         Some(dep.version.toString)
       } else {
         None
-      })).toSeq
+      })
+    ).toSeq
   }
 
 }
