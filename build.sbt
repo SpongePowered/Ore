@@ -97,6 +97,7 @@ lazy val orePlayCommon: Project = project
     libraryDependencies ++= Seq(caffeine, ws),
     libraryDependencies ++= Seq(
       Deps.pluginMeta,
+      Deps.pluginMetaMcMod,
       Deps.slickPlay,
       Deps.zio,
       Deps.zioCats,

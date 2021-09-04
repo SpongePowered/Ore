@@ -1,19 +1,18 @@
 package ore.models.project.io
 
 import scala.language.higherKinds
-
 import java.io.BufferedReader
-import com.google.gson.stream.JsonReader
 
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import scala.util.control.NonFatal
-
 import ore.data.project.Dependency
 import ore.db.{DbRef, Model, ModelService}
 import ore.models.project.{TagColor, Version, VersionTag}
-
 import org.spongepowered.plugin.meta.McModInfo
+import org.spongepowered.plugin.metadata.builtin.MetadataParser
+import org.spongepowered.plugin.metadata.model.PluginDependency
 
 /**
   * The metadata within a [[PluginFile]]
@@ -155,26 +154,26 @@ object McModInfoHandler extends FileTypeHandler("mcmod.info") {
       else {
         val metadata = info.head
 
-        if (metadata.getId != null)
-          dataValues += StringDataValue("id", metadata.getId)
+        if (metadata.id != null)
+          dataValues += StringDataValue("id", metadata.id)
 
-        if (metadata.getVersion != null)
-          dataValues += StringDataValue("version", metadata.getVersion)
+        if (metadata.version != null)
+          dataValues += StringDataValue("version", metadata.version)
 
-        if (metadata.getName != null)
-          dataValues += StringDataValue("name", metadata.getName)
+        if (metadata.name != null)
+          dataValues += StringDataValue("name", metadata.name)
 
-        if (metadata.getDescription != null)
-          dataValues += StringDataValue("description", metadata.getDescription)
+        if (metadata.description != null)
+          dataValues += StringDataValue("description", metadata.description)
 
-        if (metadata.getUrl != null)
-          dataValues += StringDataValue("url", metadata.getUrl)
+        if (metadata.url != null)
+          dataValues += StringDataValue("url", metadata.url)
 
-        if (metadata.getAuthors != null)
-          dataValues += StringListValue("authors", metadata.getAuthors.asScala.toSeq)
+        if (metadata.authors != null)
+          dataValues += StringListValue("authors", metadata.authors.asScala.toSeq)
 
-        if (metadata.getDependencies != null) {
-          val dependencies = metadata.getDependencies.asScala.map(p => Dependency(p.getId, Option(p.getVersion))).toSeq
+        if (metadata.dependencies != null) {
+          val dependencies = metadata.dependencies.asScala.map(p => Dependency(p.id, Option(p.version()))).toSeq
           dataValues += DependencyDataValue("dependencies", dependencies)
         }
 
@@ -211,96 +210,29 @@ object ModTomlHandler extends FileTypeHandler("mod.toml") {
 
 object SpongeJsonHandler extends FileTypeHandler("META-INF/plugins.json") {
 
-  def readDependencies(in: JsonReader) = {
-    val deps = new ArrayBuffer[Dependency]
-    in.beginArray()
-    while (in.hasNext) {
-      in.beginObject()
-      var dep = Dependency(null, None)
-      while (in.hasNext) {
-        in.nextName() match {
-          case "id"      => dep = dep.copy(pluginId = in.nextString())
-          case "version" => dep = dep.copy(version = Option(in.nextString()))
-          case _         => in.skipValue()
-        }
-      }
-      deps += dep
-      in.endObject()
-    }
-    in.endArray()
-    deps.toSeq
-  }
-
-  def readAuthors(in: JsonReader) = {
-    val authors = new ArrayBuffer[String]
-    in.beginArray()
-    while (in.hasNext) {
-      in.beginObject()
-      while (in.hasNext) {
-        in.nextName() match {
-          case "name" => authors += in.nextString()
-          case _      => in.skipValue()
-        }
-      }
-      in.endObject()
-    }
-    in.endArray()
-    authors.toSeq
-  }
-
-  def readDataValue(dvs: ArrayBuffer[DataValue], in: JsonReader) = {
-    while (in.hasNext) {
-      in.nextName() match {
-        case "id"           => dvs += StringDataValue("id", in.nextString());
-        case "version"      => dvs += StringDataValue("version", in.nextString());
-        case "name"         => dvs += StringDataValue("name", in.nextString());
-        case "description"  => dvs += StringDataValue("description", in.nextString());
-        case "contributors" => dvs += StringListValue("authors", readAuthors(in));
-        case "dependencies" => dvs += DependencyDataValue("dependencies", readDependencies(in));
-        // case "links" =>
-        // case "main-class" =>
-        // case "loader" =>
-        case _ => in.skipValue() // ignored
-      }
-
-    }
-  }
-
-  def readDataValues(dvs: ArrayBuffer[DataValue], in: JsonReader): Unit = {
-    var first = true;
-    in.beginArray()
-    while (in.hasNext) {
-      if (first) {
-        in.beginObject()
-        readDataValue(dvs, in)
-        first = false;
-        in.endObject()
-      } else {
-        in.skipValue() // cannot handle multiple plugins for now
-      }
-    }
-    in.endArray()
-  }
-
   override def getData(bufferedReader: BufferedReader): Seq[DataValue] = {
-    val dataValues = new ArrayBuffer[DataValue]
+    val dvs = new ArrayBuffer[DataValue]
     try {
-      val reader = new JsonReader(bufferedReader)
-      reader.beginObject()
-      try {
-        if (reader.hasNext) {
-          if (reader.nextName().equals("plugins")) {
-            readDataValues(dataValues, reader)
-          }
-        }
-      } finally {
-        reader.endObject()
-      }
-      dataValues.toSeq
+      val metadata = MetadataParser.read(bufferedReader)
+      val firstPlugin = metadata.metadata().asScala.head
+      dvs += StringDataValue("id", firstPlugin.id)
+      dvs += StringDataValue("version", firstPlugin.version.toString)
+      firstPlugin.name.toScala.map(dvs += StringDataValue("name", _))
+      firstPlugin.description.toScala.map(dvs += StringDataValue("description", _))
+      dvs += StringListValue("authors", firstPlugin.contributors().asScala.map(_.name()).toSeq)
+      dvs += DependencyDataValue("dependencies", readDependencies(firstPlugin.dependencies().asScala))
     } catch {
-      case NonFatal(e) =>
-        e.printStackTrace()
-        Nil
+      case NonFatal(e) => e.printStackTrace()
     }
+    dvs.toSeq
   }
+
+  def readDependencies(in: Iterable[PluginDependency]) : Seq[Dependency] = {
+    in.map(dep => Dependency(dep.id, if (dep.version.hasRestrictions) {
+        Some(dep.version.toString)
+      } else {
+        None
+      })).toSeq
+  }
+
 }
