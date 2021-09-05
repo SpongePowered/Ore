@@ -208,7 +208,7 @@ object ModTomlHandler extends FileTypeHandler("mod.toml") {
     Nil
 }
 
-object SpongeJsonHandler extends FileTypeHandler("META-INF/plugins.json") {
+object SpongeJsonHandler extends FileTypeHandler("META-INF/sponge_plugins.json") {
 
   override def getData(bufferedReader: BufferedReader): Seq[DataValue] = {
     try {
