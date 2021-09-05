@@ -49,9 +49,11 @@ class PluginFile(val path: Path, val user: Model[User]) {
               .continually(jarIn.getNextJarEntry)
               .takeWhile(_ != null) // scalafix:ok
               .filter(entry => fileNames.contains(entry.getName))
-              .flatMap(entry => PluginFileData.getData(entry.getName, new BufferedReader(new InputStreamReader(jarIn)) {
-                override def close(): Unit = {}
-              }))
+              .flatMap(entry => {
+                PluginFileData.getData(entry.getName, new BufferedReader(new InputStreamReader(jarIn)) {
+                  override def close(): Unit = {}
+                })
+              })
               .toVector
 
             // Mainfest file isn't read in the jar stream for whatever reason
