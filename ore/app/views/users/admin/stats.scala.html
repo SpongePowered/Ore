@@ -12,7 +12,7 @@
         request: OreRequest[_], config: OreConfig, flash: Flash, assetsFinder: AssetsFinder)
 
 @scripts = {
-    <script @CSPNonce.attr type="text/javascript" src="@assetsFinder.path("lib/chart.js/dist/Chart.min.js")"></script>
+    <script @CSPNonce.attr type="text/javascript" src="@assetsFinder.path("lib/chart.js/dist/chart.min.js")"></script>
     <script @CSPNonce.attr>
             $(function(){
                 var domChartReview = document.getElementById("chart-reviews");

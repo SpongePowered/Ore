@@ -156,6 +156,7 @@ lazy val oreClient = project
       NPMDeps.webpackMerge,
       NPMDeps.vueLoader,
       NPMDeps.vueTemplateCompiler,
+      NPMDeps.postcss,
       NPMDeps.cssLoader,
       NPMDeps.vueStyleLoader,
       NPMDeps.babelLoader,
