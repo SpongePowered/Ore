@@ -20,8 +20,8 @@ object NPMDeps {
   val babelLoader    = "babel-loader"      -> "8.2.3"
   val babelPresetEnv = "@babel/preset-env" -> "7.16.11"
 
-  val webpack               = "4.42.0"
-  val webpackDevServer      = "3.10.3"
+  val webpack               = "4.46.0"
+  val webpackDevServer      = "3.11.3"
   val webpackMerge          = "webpack-merge" -> "5.8.0"
   val webpackTerser         = "terser-webpack-plugin" -> "4.2.3"
   val webpackCopy           = "copy-webpack-plugin" -> "6.4.0"
