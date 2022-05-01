@@ -502,7 +502,7 @@ class Versions(stats: StatTracker[UIO], forms: OreForms, factory: ProjectFactory
   private def checkConfirmation(version: Model[Version], token: Option[String])(
       implicit req: ProjectRequest[_]
   ): UIO[Boolean] = {
-    if (version.reviewState == ReviewState.Reviewed)
+    if (!oreComponents.config.ore.projects.warnOnUnsafeDownloads || version.reviewState == ReviewState.Reviewed)
       UIO.succeed(true)
     else {
       val hasSessionConfirm = req.session.get(DownloadWarning.cookieKey(version.id)).contains("confirmed")
