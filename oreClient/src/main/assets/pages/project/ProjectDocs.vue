@@ -198,7 +198,7 @@ import Editor from '../../components/Editor'
 import MemberList from '../../components/MemberList'
 import { Category } from '../../enums'
 import PageList from '../../components/PageList'
-import { genericError, notFound, numberWithCommas } from '../../utils'
+import { genericError, notFound, numberWithCommas, slugify } from '../../utils'
 import Modal from '../../components/Modal'
 
 export default {
@@ -352,14 +352,15 @@ export default {
         content = page.content ? page.content : 'Welcome to your new page'
       }
       let action
+      let pageSlug
       if (this.newPage) {
-        const pageSlug = page.parent ? page.parent + '/' + page.name : page.name
+        pageSlug = page.parent ? page.parent + '/' + slugify(page.name) : slugify(page.name)
         action = API.projectRequest(this.project.namespace, '_pages/' + pageSlug, 'PUT', {
           name: page.name,
           content,
         })
       } else {
-        const pageSlug = page.oldParent ? page.oldParent + '/' + page.oldName : page.oldName
+        pageSlug = page.oldParent ? page.oldParent + '/' + slugify(page.oldName) : slugify(page.oldName)
         action = API.projectRequest(this.project.namespace, '_pages/' + pageSlug, 'PATCH', {
           name: page.name,
           content,
@@ -369,9 +370,19 @@ export default {
 
       action
         .then((res) => {
+          const currentJoinedPage = this.joinedPage
           this.$refs.editPageModal.toggle()
-          this.resetPutPage()
-          this.updatePage(true)
+          if (currentJoinedPage === pageSlug) {
+            // TODO: Route to the created page without data races
+            // We should really call updatePage here too, but then we get a 404
+            this.$router.push({
+              name: 'project_home',
+              params: { project: this.project, permissions: this.permissions },
+            })
+          } else {
+            this.resetPutPage()
+            this.updatePage(true)
+          }
         })
         .catch((err) => {
           // TODO: Better error handling here
@@ -395,7 +406,7 @@ export default {
     },
     deletePage() {
       const page = this.requestPage
-      const pageSlug = page.parent ? page.parent + '/' + page.name : page.name
+      const pageSlug = page.parent ? page.parent + '/' + slugify(page.name) : slugify(page.name)
 
       API.projectRequest(this.project.namespace, '_pages/' + pageSlug, 'DELETE')
         .then((res) => {
@@ -403,7 +414,10 @@ export default {
           this.resetPutPage()
 
           if (pageSlug === this.joinedPage) {
-            this.$router.push({ name: 'home', params: { project: this.project, permissions: this.permissions } })
+            this.$router.push({
+              name: 'project_home',
+              params: { project: this.project, permissions: this.permissions },
+            })
           } else {
             this.updatePage(true)
           }

@@ -81,3 +81,13 @@ export function genericError(self, error) {
     message: error,
   })
 }
+
+export function compact(str) {
+  return str.trim().replaceAll(/ +/g, ' ')
+}
+
+export function slugify(str) {
+  const replaceRegex = /[^a-z\-_.0-9]/g
+  const replaced = compact(str).toLowerCase().replaceAll(' ', '-').replaceAll(replaceRegex, '')
+  return replaced.substring(0, Math.min(32, replaced.length))
+}

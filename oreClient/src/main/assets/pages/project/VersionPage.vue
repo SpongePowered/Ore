@@ -802,7 +802,7 @@ export default {
 
       this.spinIcon = true
       if (Object.entries(patchVersion).length) {
-        API.versionRequest(this.project.namespace, this.version, 'PATCH', patchVersion).then((res) => {
+        API.versionRequest(this.project.namespace, this.version, '', 'PATCH', patchVersion).then((res) => {
           this.spinIcon = false
           this.editVersion = false
           this.versionObj = res
