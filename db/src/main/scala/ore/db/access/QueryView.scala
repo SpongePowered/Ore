@@ -15,7 +15,7 @@ trait QueryView[F[_, _]] {
 }
 object QueryView {
 
-  implicit val queryIsQueryView: QueryView[Query[?, ?, Seq]] = new QueryView[Query[?, ?, Seq]] {
+  implicit val queryIsQueryView: QueryView[Query[*, *, Seq]] = new QueryView[Query[*, *, Seq]] {
     override def modifyingView[T, M](fa: Query[T, M, Seq])(
         f: Query[T, M, Seq] => Query[T, M, Seq]
     ): Query[T, M, Seq] = f(fa)

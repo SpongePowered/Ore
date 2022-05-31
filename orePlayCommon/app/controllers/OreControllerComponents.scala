@@ -46,7 +46,7 @@ case class DefaultOreControllerComponents(
     langs: Langs,
     fileMimeTypes: FileMimeTypes,
     executionContext: ExecutionContext,
-    projectFiles: ProjectFiles[ZIO[Blocking, Nothing, ?]],
+    projectFiles: ProjectFiles[ZIO[Blocking, Nothing, *]],
     zioRuntime: zio.Runtime[Blocking with Clock],
     assetsFinder: AssetsFinder
 ) extends OreControllerComponents

@@ -8,10 +8,10 @@ import sbt._
 
 object Settings {
 
-  val scalaVer = "2.13.3"
+  val scalaVer = "2.13.6"
 
   val commonSettings = Seq(
-    version := "2.0.0-M2.4",
+    version := "2.0.0-M2.8",
     scalaVersion := scalaVer,
     scalacOptions ++= Seq(
       "-deprecation",
@@ -49,10 +49,10 @@ object Settings {
       "-Ybackend-parallelism",
       "6"
     ),
-    addCompilerPlugin(("org.typelevel" %% "kind-projector" % "0.11.0").cross(CrossVersion.full)),
+    addCompilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
     // Disable generation of the API documentation for production builds
-    sources in (Compile, doc) := Seq.empty,
-    publishArtifact in (Compile, packageDoc) := false
+    Compile / doc / sources := Seq.empty,
+    Compile / packageDoc / publishArtifact := false
   )
 
   lazy val playCommonSettings = Seq(
@@ -65,7 +65,7 @@ object Settings {
       "ore.permission.NamedPermission",
       "ore.data.project.Category"
     ).map(s => s"_root_.$s"),
-    unmanagedResourceDirectories in Test += (baseDirectory.value / "target/web/public/test"),
+    Test / unmanagedResourceDirectories += (baseDirectory.value / "target/web/public/test"),
     pipelineStages := Seq(digest, gzip)
   )
 }

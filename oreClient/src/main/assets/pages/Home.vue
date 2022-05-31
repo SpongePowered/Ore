@@ -19,7 +19,7 @@
           <div class="panel sponsor-panel">
             <span>Sponsored by</span>
             <div class="panel-body" :set="(sponsor = randomSponsor)">
-              <a :href="sponsor.link">
+              <a class="logo-container" :href="sponsor.link">
                 <img class="logo" :src="sponsor.image" alt="Sponsor" />
               </a>
             </div>

@@ -1,7 +1,6 @@
 # Ore
 ![Build Status Ore](https://github.com/SpongePowered/Ore/workflows/Ore%20CI/badge.svg?branch=staging)
 ![Build Status Scalafmt](https://github.com/SpongePowered/Ore/workflows/Scalafmt%20Check/badge.svg?branch=staging)
-[![Hydra](https://img.shields.io/badge/%22%22%22%7CHydra-4%20cpus-brightgreen.svg)](https://www.triplequote.com/hydra)
 
 Repository software for Sponge plugins and Forge mods https://ore.spongepowered.org/
  
@@ -100,34 +99,3 @@ Global / onLoad := {
   setNoMonitoredFiles compose old
 }
 ```
-
-### Using Hydra
-
-Hydra is the world’s only parallel compiler for the Scala language.
-Its design goal is to take advantage of the many cores available in modern hardware to parallelize compilation of Scala sources.
-This gives us the possibility to achieve a much faster compile time.
-[Triplequote](https://triplequote.com/) has kindly provided us with some licenses.
-If you have a license and want to use Hydra, follow these steps:
-
-1. Create the file `project/hydra.sbt`
-2. Put in this content into the newly created file:
-   ```
-   credentials += Credentials("Artifactory Realm",
-       "repo.triplequote.com",
-       "<username>",
-       "<password>")
-   resolvers += Resolver.url("Triplequote Plugins Releases", url("https://repo.triplequote.com/artifactory/sbt-plugins-release/"))(Resolver.ivyStylePatterns)
-   addSbtPlugin("com.triplequote" % "sbt-hydra" % "<version>")
-   ```
-   - The `<username>` and `<password>` placeholders have to be replaced with your credentials.
-   - The `<version>` placeholder has to be replaced with the lastest version of `sbt-hydra` which can be obtained from the [offical changelog](https://docs.triplequote.com/changelog/).
-
-3. Open the sbt console and make use of the following command where `<license key>` is your personal hydra license key:
-
-   ```
-   hydraActivateLicense <license key>
-   ```
-
-4. Go and start compiling!
-
-Further instructions can be found at the [official Hydra documentation](https://docs.triplequote.com/).

@@ -46,8 +46,8 @@ class DefaultRunningView[F[_], T, M](val profile: JdbcProfile)(
   ): DefaultRunningView[F, T, M] = new DefaultRunningView[F, T, M](profile)(queryView.modifyingQuery(f), runAction)
 }
 object DefaultRunningView {
-  implicit def defaultRunningViewIsQueryView[F[_]]: QueryView[DefaultRunningView[F, ?, ?]] =
-    new QueryView[DefaultRunningView[F, ?, ?]] {
+  implicit def defaultRunningViewIsQueryView[F[_]]: QueryView[DefaultRunningView[F, *, *]] =
+    new QueryView[DefaultRunningView[F, *, *]] {
       override def modifyingView[T, M](fa: DefaultRunningView[F, T, M])(
           f: fa.profile.api.Query[T, M, Seq] => fa.profile.api.Query[T, M, Seq]
       ): DefaultRunningView[F, T, M] = fa.modifyingQuery(f)

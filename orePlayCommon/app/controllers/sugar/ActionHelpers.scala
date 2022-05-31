@@ -4,7 +4,7 @@ import scala.language.{higherKinds, implicitConversions}
 
 import scala.concurrent.Future
 
-import play.api.data.Form
+import play.api.data.{Form, FormBinding, FormError}
 import play.api.mvc.Results.Redirect
 import play.api.mvc._
 
@@ -107,14 +107,19 @@ object ActionHelpers {
   }
 
   class FormBindOps[A](private val form: Form[A]) extends AnyVal {
-    def bindZIO[B](error: Form[A] => B)(implicit request: Request[_]): IO[B, A] =
+    def bindZIO[B](error: Form[A] => B)(implicit request: Request[_], formBinding: FormBinding): IO[B, A] =
       form.bindFromRequest().fold(f => ZIO.fail(error(f)), ZIO.succeed[A](_))
 
     def bindEitherT[F[_]] = new BindFormEitherTPartiallyApplied[F, A](form)
+
+    def bindOptionT[F[_]](implicit F: Monad[F], request: Request[_], formBinding: FormBinding): OptionT[F, A] =
+      form.bindFromRequest().fold(_ => OptionT.none[F, A], OptionT.some[F](_))
   }
 
   final class BindFormEitherTPartiallyApplied[F[_], B](private val form: Form[B]) extends AnyVal {
-    def apply[A](left: Form[B] => A)(implicit F: Monad[F], request: Request[_]): EitherT[F, A, B] =
+    def apply[A](
+        left: Form[B] => A
+    )(implicit F: Monad[F], request: Request[_], formBinding: FormBinding): EitherT[F, A, B] =
       form.bindFromRequest().fold(left.andThen(EitherT.leftT[F, B](_)), EitherT.rightT[F, A](_))
   }
 

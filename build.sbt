@@ -99,6 +99,7 @@ lazy val orePlayCommon: Project = project
     libraryDependencies ++= Seq(caffeine, ws),
     libraryDependencies ++= Seq(
       Deps.pluginMeta,
+      Deps.pluginMetaMcMod,
       Deps.slickPlay,
       Deps.zio,
       Deps.zioCats,
@@ -191,7 +192,7 @@ lazy val ore = project
     swaggerV3 := true,
     PlayKeys.playMonitoredFiles += baseDirectory.value / "swagger.yml",
     PlayKeys.playMonitoredFiles += baseDirectory.value / "swagger-custom-mappings.yml",
-    WebKeys.exportedMappings in Assets := Seq(),
+    Assets / WebKeys.exportedMappings := Seq(),
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, resolvers, libraryDependencies),
     buildInfoOptions += BuildInfoOption.BuildTime,
     buildInfoPackage := "ore",

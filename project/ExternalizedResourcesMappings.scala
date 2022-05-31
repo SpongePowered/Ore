@@ -26,8 +26,8 @@ object ExternalizedResourcesMappings extends AutoPlugin {
 
   override val projectSettings: Seq[Def.Setting[_]] = Seq(
     externalizeResourcesExcludes := Nil,
-    mappings in Universal ++= {
-      val resourceMappings = (externalizedResources in Compile).value
+    Universal / mappings ++= {
+      val resourceMappings = (Compile / externalizedResources).value
       resourceMappings.map {
         case (resource, path) => resource -> ("conf/" + path)
       }
@@ -40,12 +40,12 @@ object ExternalizedResourcesMappings extends AutoPlugin {
       val oldValue = scriptClasspathOrdering.value
       Def.task {
         // Filter out the regular jar
-        val jar                    = (packageBin in Runtime).value
-        val jarSansExternalizedObj = (jarSansExternalized in Runtime).value
+        val jar                    = (Runtime / packageBin).value
+        val jarSansExternalizedObj = (Runtime / jarSansExternalized).value
         oldValue.map {
           case (packageBinJar, _) if jar == packageBinJar =>
             val id  = projectID.value
-            val art = (artifact in Compile in jarSansExternalized).value
+            val art = (Compile / jarSansExternalized / artifact).value
             val jarName =
               JavaAppPackaging.makeJarName(id.organization, id.name, id.revision, art.name, art.classifier)
             jarSansExternalizedObj -> ("lib/" + jarName)
@@ -63,17 +63,17 @@ object ExternalizedResourcesMappings extends AutoPlugin {
     (unmanagedResourcesValue --- rdirs --- externalizeResourcesExcludes).pair(relativeTo(rdirs) | flat)
 
   private def externalizedSettings: Seq[Setting[_]] =
-    Defaults.packageTaskSettings(jarSansExternalized, mappings in jarSansExternalized) ++ Seq(
+    Defaults.packageTaskSettings(jarSansExternalized, jarSansExternalized / mappings) ++ Seq(
       externalizedResources := getExternalizedResources(
         unmanagedResourceDirectories.value,
         unmanagedResources.value,
         externalizeResourcesExcludes.value
       ),
-      mappings in jarSansExternalized := {
+      jarSansExternalized / mappings := {
         // packageBin mappings have all the copied resources from the classes directory
         // so we need to get the copied resources, and map the source files to the destination files,
         // so we can then exclude the destination files
-        val packageBinMappings = (mappings in packageBin).value
+        val packageBinMappings = (packageBin / mappings).value
         val externalized       = externalizedResources.value.map(_._1).toSet
         val copied             = copyResources.value
         val toExclude = copied.collect {
@@ -83,6 +83,6 @@ object ExternalizedResourcesMappings extends AutoPlugin {
           case (file, _) => toExclude(file)
         }
       },
-      artifactClassifier in jarSansExternalized := Option("sans-externalized")
+      jarSansExternalized / artifactClassifier := Option("sans-externalized")
     )
 }

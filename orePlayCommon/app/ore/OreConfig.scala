@@ -142,6 +142,7 @@ object OreConfig {
         checkInterval: FiniteDuration,
         draftExpire: FiniteDuration,
         userGridPageSize: Int,
+        warnOnUnsafeDownloads: Boolean,
         unsafeDownloadMaxAge: FiniteDuration,
         uploadMaxSize: ConfigMemorySize
     )

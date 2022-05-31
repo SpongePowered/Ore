@@ -100,8 +100,8 @@ object ModelView {
   type Later[T, M]     = ModelView[Query[T, M, Seq], Rep, T, M]
   type Raw[T, M]       = Query[T, M, Seq]
 
-  implicit def modelViewIsQueryView[QueryOptRet, SingleRet[_]]: QueryView[ModelView[QueryOptRet, SingleRet, ?, ?]] =
-    new QueryView[ModelView[QueryOptRet, SingleRet, ?, ?]] {
+  implicit def modelViewIsQueryView[QueryOptRet, SingleRet[_]]: QueryView[ModelView[QueryOptRet, SingleRet, *, *]] =
+    new QueryView[ModelView[QueryOptRet, SingleRet, *, *]] {
       override def modifyingView[T, M](fa: ModelView[QueryOptRet, SingleRet, T, M])(
           f: Query[T, M, Seq] => Query[T, M, Seq]
       ): ModelView[QueryOptRet, SingleRet, T, M] = fa.modifyingQuery(f)

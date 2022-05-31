@@ -291,7 +291,7 @@ class OreComponents(context: ApplicationLoader.Context)
 
   def runWhenEvolutionsDone(action: UIO[Unit]): Unit = {
     val isDone    = ZIO.effectTotal(applicationEvolutions.upToDate)
-    val waitCheck = Schedule.recurWhileM((_: Unit) => isDone) && Schedule.fixed(Duration.ofMillis(20))
+    val waitCheck = Schedule.recurUntilM((_: Unit) => isDone) && Schedule.fixed(Duration.ofMillis(20))
 
     runtime.unsafeRunAsync(ZIO.unit.repeat(waitCheck).andThen(action)) {
       case Exit.Success(_) => ()

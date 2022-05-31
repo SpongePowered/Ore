@@ -3,25 +3,25 @@ import play.sbt.PlayImport._
 import sbt._
 
 object Version {
-  val cats        = "2.2.0"
+  val cats        = "2.6.1"
   val catsEffect  = "2.2.0"
   val catsTagless = "0.11"
 
-  val zio     = "1.0.1"
-  val zioCats = "2.2.0.0"
+  val zio     = "1.0.9"
+  val zioCats = "2.2.0.1"
 
   val slick     = "3.3.3"
-  val slickPg   = "0.19.3"
+  val slickPg   = "0.19.6"
   val playSlick = "5.0.0"
-  val doobie    = "0.9.2"
+  val doobie    = "0.9.4"
 
   val circe           = "0.13.0"
-  val circeDerivation = "0.13.0-M4"
+  val circeDerivation = "0.13.0-M5"
   val circeYaml       = "0.13.1"
 
-  val akka         = "2.6.9"
-  val akkaHttp     = "10.1.12"
-  val scalaLogging = "3.9.2"
+  val akka         = "2.6.15"
+  val akkaHttp     = "10.1.14"
+  val scalaLogging = "3.9.4"
 
   val simulacrum = "0.19.0"
   val macWire    = "2.3.7"
@@ -36,7 +36,7 @@ object Deps {
   val cats        = "org.typelevel"        %% "cats-core"           % Version.cats
   val catsEffect  = "org.typelevel"        %% "cats-effect"         % Version.catsEffect
   val catsTagless = "org.typelevel"        %% "cats-tagless-macros" % Version.catsTagless
-  val shapeless   = "com.chuusai"          %% "shapeless"           % "2.3.3"
+  val shapeless   = "com.chuusai"          %% "shapeless"           % "2.3.7"
   val simulacrum  = "com.github.mpilquist" %% "simulacrum"          % Version.simulacrum
 
   val slick               = "com.typesafe.slick"  %% "slick"                 % Version.slick
@@ -71,7 +71,7 @@ object Deps {
   val zio     = "dev.zio" %% "zio"              % Version.zio
   val zioCats = "dev.zio" %% "zio-interop-cats" % Version.zioCats
 
-  val pureConfig = "com.github.pureconfig" %% "pureconfig" % "0.14.0"
+  val pureConfig = "com.github.pureconfig" %% "pureconfig" % "0.14.1"
 
   val scalaCache           = "com.github.cb372" %% "scalacache-caffeine"    % Version.scalaCache
   val scalaCacheCatsEffect = "com.github.cb372" %% "scalacache-cats-effect" % Version.scalaCache
@@ -96,14 +96,16 @@ object Deps {
     "ext-wikilink"
   ).map(flexmarkDep)
 
-  lazy val squealCategoryMacro = "net.katsstuff" %% "squeal-category-macro" % Version.squeal
+  // Sponge API-8+
+  val pluginMeta = "org.spongepowered" % "plugin-meta" % "0.8.0"
 
-  val pluginMeta = "org.spongepowered" % "plugin-meta" % "0.4.1"
+  // mcmod.info
+  val pluginMetaMcMod = "org.spongepowered.plugin-meta" % "mcmod-info" % "0.8.0"
 
   val javaxMail = "javax.mail"     % "mail"            % "1.4.7"
   val postgres  = "org.postgresql" % "postgresql"      % "42.2.16"
   val logback   = "ch.qos.logback" % "logback-classic" % "1.2.3"
-  val sentry    = "io.sentry"      % "sentry-logback"  % "3.0.0"
+  val sentry    = "io.sentry"      % "sentry-logback"  % "3.2.1"
 
   val playTestDeps = Seq(
     jdbc % Test,
