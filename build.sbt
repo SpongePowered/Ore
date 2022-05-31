@@ -125,7 +125,8 @@ lazy val apiV2 = project
       Deps.circeParser,
       Deps.scalaCache,
       Deps.scalaCacheCatsEffect,
-      Deps.squealCategoryMacro
+      Deps.perspectiveDerivation,
+      Deps.perspectiveMacros
     ),
     libraryDependencies ++= Deps.playTestDeps
   )
@@ -139,7 +140,7 @@ lazy val oreClient = project
     Assets / webpackProdConfig := baseDirectory.value / "webpack.config.prod.js",
     Assets / webpackMonitoredDirectories += baseDirectory.value / "src" / "main" / "assets",
     Assets / webpackMonitoredFiles / includeFilter := "*.vue" || "*.js",
-    webpackMonitoredFiles in Assets ++= Seq(
+    Assets / webpackMonitoredFiles ++= Seq(
       baseDirectory.value / "webpack.config.common.js",
       baseDirectory.value / ".postcssrc.js",
       baseDirectory.value / ".browserlistrc"

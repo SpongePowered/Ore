@@ -36,8 +36,8 @@ import cats.syntax.all._
 import io.circe._
 import io.circe.derivation.annotations.SnakeCaseJsonCodec
 import io.circe.syntax._
-import squeal.category._
-import squeal.category.macros.Derive
+import perspective._
+import perspective.macros.Derive
 import zio.blocking.Blocking
 import zio.interop.catz._
 import zio.{Task, UIO, ZIO}
@@ -478,13 +478,16 @@ object Projects {
   )
   object EditableProjectF {
     implicit val F
-        : ApplicativeKC[EditableProjectF] with TraverseKC[EditableProjectF] with DistributiveKC[EditableProjectF] =
-      Derive.allKC[EditableProjectF]
+        : TraverseKC[EditableProjectF] with RepresentableKC[EditableProjectF] { type RepresentationK[A] = Finite[12] } =
+      Derive.allKC[EditableProjectF, λ[A => Finite[12]]]
 
-    val patchDecoder: EditableProjectF[PatchDecoder] =
-      PatchDecoder.fromName(Derive.namesWithProductImplicitsC[EditableProjectF, Decoder])(
+    val patchDecoder: EditableProjectF[PatchDecoder] = {
+      val namesWithImplicits: EditableProjectF[Tuple2K[Derive.Names, Decoder, *]] =
+        Derive.namesWithImplicitsC[EditableProjectF, Decoder]
+      PatchDecoder.fromName(namesWithImplicits)(
         io.circe.derivation.renaming.snakeCase
       )
+    }
 
     def validation(implicit config: OreConfig): EditableProjectF[PartialUtils.Validator] = {
       import PartialUtils.Validator
@@ -519,9 +522,10 @@ object Projects {
       owner: F[String]
   )
   object EditableProjectNamespaceF {
-    implicit val F: ApplicativeKC[EditableProjectNamespaceF]
-      with TraverseKC[EditableProjectNamespaceF]
-      with DistributiveKC[EditableProjectNamespaceF] = Derive.allKC[EditableProjectNamespaceF]
+    implicit val F: TraverseKC[EditableProjectNamespaceF] with RepresentableKC[EditableProjectNamespaceF] {
+      type RepresentationK[A] = Finite[1]
+    } =
+      Derive.allKC[EditableProjectNamespaceF, λ[A => Finite[1]]]
   }
 
   case class EditableProjectSettingsF[F[_]](
@@ -534,16 +538,18 @@ object Projects {
       forumSync: F[Boolean]
   )
   object EditableProjectSettingsF {
-    implicit val F: ApplicativeKC[EditableProjectSettingsF]
-      with TraverseKC[EditableProjectSettingsF]
-      with DistributiveKC[EditableProjectSettingsF] = Derive.allKC[EditableProjectSettingsF]
+    implicit val F: TraverseKC[EditableProjectSettingsF] with RepresentableKC[EditableProjectSettingsF] {
+      type RepresentationK[A] = Finite[8]
+    } =
+      Derive.allKC[EditableProjectSettingsF, λ[A => Finite[8]]]
   }
 
   case class EditableProjectLicenseF[F[_]](name: F[Option[String]], url: F[Option[String]])
   object EditableProjectLicenseF {
-    implicit val F: ApplicativeKC[EditableProjectLicenseF]
-      with TraverseKC[EditableProjectLicenseF]
-      with DistributiveKC[EditableProjectLicenseF] = Derive.allKC[EditableProjectLicenseF]
+    implicit val F: TraverseKC[EditableProjectLicenseF] with RepresentableKC[EditableProjectLicenseF] {
+      type RepresentationK[A] = Finite[2]
+    } =
+      Derive.allKC[EditableProjectLicenseF, λ[A => Finite[2]]]
   }
 
   @SnakeCaseJsonCodec case class ApiV2ProjectTemplate(

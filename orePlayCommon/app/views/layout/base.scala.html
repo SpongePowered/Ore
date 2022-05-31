@@ -21,7 +21,7 @@ this.
         <link rel="preload" href="@assetsFinder.path("bootstrap/css/bootstrap.min.css")" as="style">
         <link rel="preload" href="@assetsFinder.path("lib/ore-client/main.css")" as="style">
         <link rel="preload" href="@assetsFinder.path("lib/jquery/dist/jquery.min.js")" as="script">
-        <link rel="preload" type="text/javascript" href="@routes.Application.javascriptRoutes()" as="script">
+        <link rel="preload" type="text/javascript" href="@routes.Application.javascriptRoutes" as="script">
 
         <title>@title</title>
 
@@ -92,7 +92,7 @@ this.
                 </script>
             }
 
-            <script type="text/javascript" src="@routes.Application.javascriptRoutes()"></script>
+            <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
             <script type="text/javascript" src="@assetsFinder.path("lib/ore-client/vendors.js")"></script>
             <script type="text/javascript" src="@assetsFinder.path("lib/ore-client/font-awesome.js")"></script>
             <script type="text/javascript" src="@assetsFinder.path("bootstrap/js/bootstrap.min.js")"></script>

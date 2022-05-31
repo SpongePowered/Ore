@@ -16,8 +16,8 @@ import doobie.implicits.javasql._
 import doobie.implicits.javatime.JavaTimeLocalDateMeta
 import doobie.util.Put
 import doobie.util.fragment.Elem
-import squeal.category._
-import squeal.category.syntax.all._
+import perspective._
+import perspective.syntax.all._
 
 trait APIV2Queries extends DoobieOreProtocol {
 
@@ -45,8 +45,8 @@ trait APIV2Queries extends DoobieOreProtocol {
       edits: F[Option]
   ): Fragment = {
 
-    val applyUpdate = new FunctionK[Tuple2K[Option, Column]#λ, Compose2[Option, Const[Fragment]#λ, *]] {
-      override def apply[A](tuple: Tuple2K[Option, Column]#λ[A]): Option[Fragment] = {
+    val applyUpdate = new FunctionK[Tuple2K[Option, Column, *], Compose2[Option, Const[Fragment, *], *]] {
+      override def apply[A](tuple: Tuple2K[Option, Column, A]): Option[Fragment] = {
         val column = tuple._2
         tuple._1.map(value => Fragment.const(column.name) ++ Fragment("= ?", List(column.mkElem(value))))
       }
@@ -55,7 +55,7 @@ trait APIV2Queries extends DoobieOreProtocol {
     val updatesSeq = edits
       .map2KC(columns)(applyUpdate)
       .foldMapKC[List[Option[Fragment]]](
-        λ[Compose2[Option, Const[Fragment]#λ, *] ~>: Compose3[List, Option, Const[Fragment]#λ, *]](List(_))
+        λ[Compose2[Option, Const[Fragment, *], *] ~>: Compose3[List, Option, Const[Fragment, *], *]](List(_))
       )
 
     val updates = Fragments.setOpt(updatesSeq: _*)

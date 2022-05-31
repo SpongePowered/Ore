@@ -2,8 +2,8 @@ package util
 
 import cats.syntax.all._
 import io.circe.{ACursor, Decoder}
-import squeal.category._
-import squeal.category.syntax.all._
+import perspective._
+import perspective.syntax.all._
 
 trait PatchDecoder[A] {
 
@@ -23,9 +23,9 @@ object PatchDecoder {
   }
 
   def fromName[F[_[_]]: FunctorKC](
-      fsd: F[Tuple2K[Const[List[String]]#λ, Decoder]#λ]
+      fsd: F[Tuple2K[Const[List[String], *], Decoder, *]]
   )(nameTransform: String => String): F[PatchDecoder] =
     fsd.mapKC(
-      λ[Tuple2K[Const[List[String]]#λ, Decoder]#λ ~>: PatchDecoder](t => mkPath(t._1.map(nameTransform): _*)(t._2))
+      λ[Tuple2K[Const[List[String], *], Decoder, *] ~>: PatchDecoder](t => mkPath(t._1.map(nameTransform): _*)(t._2))
     )
 }

@@ -1,0 +1,26 @@
+{
+  alwaysTryLogin: true,
+  app: {
+    baseUrl: "http://localhost:9000"
+  },
+  ore: {
+    projects: {
+      maxDescLen: 120,
+      maxNameLen: 25
+    },
+    users: {
+      maxTaglineLen: 100
+    }
+  },
+  sponge: {
+    logo: "https://www.spongepowered.org/assets/img/icons/spongie-mark.svg"
+  },
+  security: {
+    api: {
+      avatarUrl: "https://auth.spongepowered.org/avatar/{0}?size=120x120"
+    }
+  },
+  discourse: {
+    baseUrl: "http://discourse.stage.spongemc.org"
+  }
+}

@@ -143,7 +143,7 @@ object ProjectQueries extends APIV2Queries {
       limit: Long,
       offset: Long
   )(
-      implicit projectFiles: ProjectFiles[ZIO[Blocking, Nothing, ?]],
+      implicit projectFiles: ProjectFiles[ZIO[Blocking, Nothing, *]],
       requestHeader: RequestHeader,
       config: OreConfig
   ): Query0[ZIO[Blocking, Nothing, APIV2.Project]] = {
@@ -192,7 +192,7 @@ object ProjectQueries extends APIV2Queries {
       canSeeHidden: Boolean,
       currentUserId: Option[DbRef[User]]
   )(
-      implicit projectFiles: ProjectFiles[ZIO[Blocking, Nothing, ?]],
+      implicit projectFiles: ProjectFiles[ZIO[Blocking, Nothing, *]],
       requestHeader: RequestHeader,
       config: OreConfig
   ): Query0[ZIO[Blocking, Nothing, APIV2.Project]] =

@@ -11,13 +11,9 @@ module.exports = {
     'plugin:import/errors',
     'plugin:import/warnings',
     'plugin:vue/recommended',
-    'prettier',
-    'prettier/babel',
-    'prettier/vue',
-    'prettier/standard',
     'plugin:prettier/recommended',
   ],
-  plugins: ['vue', 'babel', 'standard', 'prettier'],
+  plugins: ['vue', 'babel', 'prettier'],
   globals: {
     $: 'readonly',
     jsRoutes: 'readonly',
@@ -57,10 +53,7 @@ module.exports = {
       'error',
       {
         singleline: 5,
-        multiline: {
-          max: 1,
-          allowFirstLine: true,
-        },
+        multiline: 1,
       },
     ],
   },

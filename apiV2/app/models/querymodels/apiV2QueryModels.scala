@@ -181,7 +181,7 @@ object APIV2QueryProject {
             //This will crash and burn if the implementation becomes
             //something else, but better that, than failing silently
             case version: DefaultArtifactVersion =>
-              if (BigInt(version.getVersion.getFirstInteger) >= 28) {
+              if (BigInt(version.version.getFirstInteger) >= 28) {
                 Some(version.toString) //Not sure what we really want to do here
               } else {
                 version.toString match {

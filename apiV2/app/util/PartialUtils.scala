@@ -4,8 +4,8 @@ import cats.data.{Validated, ValidatedNel}
 import cats.syntax.all._
 import io.circe.Decoder.AccumulatingResult
 import io.circe.{Decoder, HCursor}
-import squeal.category._
-import squeal.category.syntax._
+import perspective._
+import perspective.syntax.all._
 
 object PartialUtils {
   type PatchResult[A]    = Decoder.AccumulatingResult[Option[A]]
@@ -36,8 +36,8 @@ object PartialUtils {
   def decodeAll(root: HCursor): PatchDecoder ~>: Compose2[AccumulatingResult, Option, *] =
     Lambda[PatchDecoder ~>: Compose2[Decoder.AccumulatingResult, Option, *]](_.decode(root))
 
-  val validateAll: Tuple2K[PatchResult, Validator]#λ ~>: ValidateResult =
-    new (Tuple2K[PatchResult, Validator]#λ ~>: ValidateResult) {
+  val validateAll: Tuple2K[PatchResult, Validator, *] ~>: ValidateResult =
+    new (Tuple2K[PatchResult, Validator, *] ~>: ValidateResult) {
       override def apply[Z](fa: (PatchResult[Z], Validator[Z])): ValidateResult[Z] = {
         import cats.instances.option._
         val progress  = fa._1
@@ -56,14 +56,14 @@ object PartialUtils {
       FA.map2K(FA.mapK(decoders)(decodeAll(root)), validators)(validateAll)
     )
 
-  def toListK[F[_[_]], A](values: F[Const[A]#λ])(implicit F: FoldableKC[F]): List[A] = {
+  def toListK[F[_[_]], A](values: F[Const[A, *]])(implicit F: FoldableKC[F]): List[A] = {
     import cats.instances.list._
-    F.foldMapK(values)(FunctionK.liftConstToConst(a => List(a)))
+    F.foldMapK(values)(FunctionK.liftConst(a => List(a)))
   }
 
   def countDefined[F[_[_]]](values: F[Option])(implicit F: FoldableKC[F]): Int = {
     import cats.instances.int._
-    F.foldMapK(values)(λ[Option ~>: Const[Int]#λ](fa => if (fa.isDefined) 1 else 0))
+    F.foldMapK(values)(λ[Option ~>: Const[Int, *]](fa => if (fa.isDefined) 1 else 0))
   }
 
 }

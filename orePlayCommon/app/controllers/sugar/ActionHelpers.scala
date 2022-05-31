@@ -1,6 +1,6 @@
 package controllers.sugar
 
-import scala.language.{higherKinds, implicitConversions}
+import scala.language.implicitConversions
 
 import scala.concurrent.Future
 
@@ -11,7 +11,7 @@ import play.api.mvc._
 import controllers.sugar.Requests.OreRequest
 
 import cats.Monad
-import cats.data.EitherT
+import cats.data.{EitherT, OptionT}
 import com.google.common.base.Preconditions.checkArgument
 import zio.blocking.Blocking
 import zio.clock.Clock

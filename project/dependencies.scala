@@ -28,7 +28,7 @@ object Version {
   val scalaCache = "0.28.0"
   val flexmark   = "0.62.2"
 
-  val squeal = "0.0.2"
+  val perspective = "0.0.2"
 }
 
 object Deps {
@@ -38,6 +38,9 @@ object Deps {
   val catsTagless = "org.typelevel"        %% "cats-tagless-macros" % Version.catsTagless
   val shapeless   = "com.chuusai"          %% "shapeless"           % "2.3.7"
   val simulacrum  = "com.github.mpilquist" %% "simulacrum"          % Version.simulacrum
+
+  val perspectiveDerivation = "net.katsstuff" %% "perspective-derivation" % "0.0.4"
+  val perspectiveMacros     = "net.katsstuff" %% "perspective-macro"      % "0.0.4"
 
   val slick               = "com.typesafe.slick"  %% "slick"                 % Version.slick
   val slickHikariCp       = "com.typesafe.slick"  %% "slick-hikaricp"        % Version.slick
