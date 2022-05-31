@@ -359,12 +359,14 @@ export default {
         .then((res) => {
           const currentJoinedPage = this.joinedPage
           this.$refs.editPageModal.toggle()
-          if(currentJoinedPage === pageSlug) {
-            //TODO: Route to the created page without data races
-            //We should really call updatePage here too, but then we get a 404
-            this.$router.push({ name: 'project_home', params: { project: this.project, permissions: this.permissions } })
-          }
-          else {
+          if (currentJoinedPage === pageSlug) {
+            // TODO: Route to the created page without data races
+            // We should really call updatePage here too, but then we get a 404
+            this.$router.push({
+              name: 'project_home',
+              params: { project: this.project, permissions: this.permissions },
+            })
+          } else {
             this.resetPutPage()
             this.updatePage(true)
           }
@@ -399,7 +401,10 @@ export default {
           this.resetPutPage()
 
           if (pageSlug === this.joinedPage) {
-            this.$router.push({ name: 'project_home', params: { project: this.project, permissions: this.permissions } })
+            this.$router.push({
+              name: 'project_home',
+              params: { project: this.project, permissions: this.permissions },
+            })
           } else {
             this.updatePage(true)
           }
