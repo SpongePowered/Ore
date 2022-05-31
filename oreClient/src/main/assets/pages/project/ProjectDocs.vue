@@ -3,7 +3,14 @@
     <div class="col-md-9">
       <div class="row">
         <div class="col-md-12">
-          <editor :enabled="permissions.includes('edit_page')" :raw="description" subject="Page" @saved="savePage" />
+          <editor
+            :enabled="permissions.includes('edit_page')"
+            :raw="description"
+            subject="Page"
+            :markdown-base-url="`/${project.namespace.owner}/${project.namespace.slug}/pages/`"
+            :markdown-relative-base-url="`/${project.namespace.owner}/${project.namespace.slug}/pages/${pageParent}`"
+            @saved="savePage"
+          />
         </div>
       </div>
     </div>
@@ -259,6 +266,12 @@ export default {
     },
     joinedPage() {
       return Array.isArray(this.page) ? this.page.join('/') : this.page
+    },
+    pageParent() {
+      const splitPageCopy = [...this.splitPage]
+      splitPageCopy.pop()
+
+      return splitPageCopy.join('/')
     },
     currentPage() {
       return this.pages.filter((p) =>

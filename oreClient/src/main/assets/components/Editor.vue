@@ -78,15 +78,6 @@ import markdownItWikilinks from 'markdown-it-wikilinks'
 import markdownItTaskLists from 'markdown-it-task-lists'
 import Modal from './Modal'
 
-const md = markdownIt({
-  html: true,
-  linkify: true,
-  typographer: true,
-})
-  .use(markdownItAnchor)
-  .use(markdownItWikilinks({ relativeBaseURL: location.pathname + '/pages/', uriSuffix: '' }))
-  .use(markdownItTaskLists)
-
 export default {
   components: {
     Modal,
@@ -116,6 +107,14 @@ export default {
       type: String,
       default: '',
     },
+    markdownBaseUrl: {
+      type: String,
+      required: true,
+    },
+    markdownRelativeBaseUrl: {
+      type: String,
+      required: true,
+    },
   },
   data() {
     return {
@@ -124,11 +123,31 @@ export default {
     }
   },
   computed: {
+    md() {
+      const mdInstance = markdownIt({
+        html: true,
+        linkify: true,
+        typographer: true,
+      })
+        .use(markdownItAnchor)
+        .use(
+          markdownItWikilinks({
+            baseUrl: this.markdownBaseUrl,
+            relativeBaseURL: this.markdownRelativeBaseUrl,
+            uriSuffix: '',
+          })
+        )
+        .use(markdownItTaskLists)
+
+      mdInstance.linkify.set({})
+
+      return mdInstance
+    },
     previewCooked() {
-      return md.render(this.rawData)
+      return this.md.render(this.rawData)
     },
     cooked() {
-      return md.render(this.raw)
+      return this.md.render(this.raw)
     },
     buttonStateClasses() {
       return {

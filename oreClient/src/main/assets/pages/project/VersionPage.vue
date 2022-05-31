@@ -266,6 +266,8 @@
               :enabled="permissions.includes('edit_page')"
               :raw="versionDescription ? versionDescription : ''"
               subject="Version"
+              :markdown-base-url="`/${project.namespace.owner}/${project.namespace.slug}/pages/`"
+              :markdown-relative-base-url="`/${project.namespace.owner}/${project.namespace.slug}/pages/`"
               @saved="saveDescription"
             />
           </div>

@@ -127,6 +127,8 @@
         <editor
           :enabled="true"
           :raw="description"
+          :markdown-base-url="`/${project.namespace.owner}/${project.namespace.slug}/pages/`"
+          :markdown-relative-base-url="`/${project.namespace.owner}/${project.namespace.slug}/pages/`"
           @change="(data) => (description = data)"
           @saved="(data) => (description = data)"
         ></editor>
