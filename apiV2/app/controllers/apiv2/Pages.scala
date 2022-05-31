@@ -6,7 +6,7 @@ import play.api.mvc.{Action, AnyContent}
 
 import controllers.OreControllerComponents
 import controllers.apiv2.helpers.{APIScope, ApiError, ApiErrors}
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.PageQueries
 import models.protocols.APIV2
 import ore.db.DbRef
 import ore.db.impl.OrePostgresDriver.api._
@@ -34,7 +34,7 @@ class Pages(val errorHandler: HttpErrorHandler, lifecycle: ApplicationLifecycle)
 
   def showPages(projectOwner: String, projectSlug: String): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.GlobalScope).asyncF {
-      service.runDbCon(APIV2Queries.pageList(projectOwner, projectSlug).to[Vector]).flatMap { pages =>
+      service.runDbCon(PageQueries.pageList(projectOwner, projectSlug).to[Vector]).flatMap { pages =>
         if (pages.isEmpty) ZIO.fail(NotFound)
         else ZIO.succeed(Ok(APIV2.PageList(pages.map(t => APIV2.PageListEntry(t._3, t._4, t._5)))))
       }
@@ -42,7 +42,7 @@ class Pages(val errorHandler: HttpErrorHandler, lifecycle: ApplicationLifecycle)
 
   def showPageAction(projectOwner: String, projectSlug: String, page: String): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.GlobalScope).asyncF {
-      service.runDbCon(APIV2Queries.getPage(projectOwner, projectSlug, page).option).get.orElseFail(NotFound).map {
+      service.runDbCon(PageQueries.getPage(projectOwner, projectSlug, page).option).get.orElseFail(NotFound).map {
         case (_, _, name, contents) =>
           Ok(APIV2.Page(name, contents))
       }
@@ -59,7 +59,7 @@ class Pages(val errorHandler: HttpErrorHandler, lifecycle: ApplicationLifecycle)
         val slug     = StringUtils.slugify(pageArr.last) //TODO: Check ASCII
 
         val updateExisting =
-          service.runDbCon(APIV2Queries.getPage(projectOwner, projectSlug, page).option).get.flatMap {
+          service.runDbCon(PageQueries.getPage(projectOwner, projectSlug, page).option).get.flatMap {
             case (_, id, _, _) =>
               service
                 .runDBIO(
@@ -76,7 +76,7 @@ class Pages(val errorHandler: HttpErrorHandler, lifecycle: ApplicationLifecycle)
         val createNew =
           if (page.contains("/")) {
             service
-              .runDbCon(APIV2Queries.getPage(projectOwner, projectSlug, pageInit).option)
+              .runDbCon(PageQueries.getPage(projectOwner, projectSlug, pageInit).option)
               .get
               .orElseFail(NotFound)
               .flatMap {
@@ -116,10 +116,10 @@ class Pages(val errorHandler: HttpErrorHandler, lifecycle: ApplicationLifecycle)
             val slug = newName.name.map(StringUtils.slugify)
 
             val oldPage =
-              service.runDbCon(APIV2Queries.getPage(projectOwner, projectSlug, page).option).get.orElseFail(NotFound)
+              service.runDbCon(PageQueries.getPage(projectOwner, projectSlug, page).option).get.orElseFail(NotFound)
             val newParent = newName.parent
               .map(
-                _.map(p => service.runDbCon(APIV2Queries.getPage(projectOwner, projectSlug, p).option).get.map(_._2)).sequence
+                _.map(p => service.runDbCon(PageQueries.getPage(projectOwner, projectSlug, p).option).get.map(_._2)).sequence
               )
               .sequence
               .orElseFail(BadRequest(ApiError("Unknown parent")))
@@ -127,7 +127,7 @@ class Pages(val errorHandler: HttpErrorHandler, lifecycle: ApplicationLifecycle)
             val runRename = (oldPage <&> newParent).flatMap {
               case ((_, id, name, contents), parentId) =>
                 service
-                  .runDbCon(APIV2Queries.patchPage(newName, slug, id, parentId).run)
+                  .runDbCon(PageQueries.patchPage(newName, slug, id, parentId).run)
                   .as(Ok(APIV2.Page(newName.name.getOrElse(name), newName.content.getOrElse(contents))))
             }
 
@@ -141,7 +141,7 @@ class Pages(val errorHandler: HttpErrorHandler, lifecycle: ApplicationLifecycle)
   def deletePage(projectOwner: String, projectSlug: String, page: String): Action[AnyContent] =
     ApiAction(Permission.EditPage, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF {
       service
-        .runDbCon(APIV2Queries.getPage(projectOwner, projectSlug, page).option)
+        .runDbCon(PageQueries.getPage(projectOwner, projectSlug, page).option)
         .get
         .orElseFail(NotFound)
         .flatMap {

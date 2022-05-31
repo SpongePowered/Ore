@@ -6,7 +6,7 @@ import play.api.mvc.{Action, AnyContent, Result}
 
 import controllers.OreControllerComponents
 import controllers.apiv2.helpers.{APIScope, Members}
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.{OrganizationQueries, UserQueries}
 import ore.data.user.notification.NotificationType
 import ore.db.impl.schema.OrganizationRoleTable
 import ore.models.organization.Organization
@@ -27,13 +27,13 @@ class Organizations(
   def showOrganization(organization: String): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.GlobalScope).asyncF {
       service
-        .runDbCon(APIV2Queries.organizationQuery(organization).option)
+        .runDbCon(OrganizationQueries.organizationQuery(organization).option)
         .map(_.fold(NotFound: Result)(a => Ok(a.asJson)))
     }
 
   def showOrgMembers(organization: String, limit: Option[Long], offset: Long): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.OrganizationScope(organization)).asyncF { implicit r =>
-      Members.membersAction(APIV2Queries.orgaMembers(organization, _, _), limit, offset)
+      Members.membersAction(UserQueries.orgaMembers(organization, _, _), limit, offset)
     }
 
   def updateOrgMembers(organization: String): Action[List[Members.MemberUpdate]] =
@@ -42,7 +42,7 @@ class Organizations(
         Members.updateMembers[Organization, OrganizationUserRole, OrganizationRoleTable](
           getSubject = organizations.withName(organization).someOrFail(NotFound),
           allowOrgMembers = false,
-          getMembersQuery = APIV2Queries.orgaMembers(organization, _, _),
+          getMembersQuery = UserQueries.orgaMembers(organization, _, _),
           createRole = OrganizationUserRole(_, _, _),
           roleCompanion = OrganizationUserRole,
           notificationType = NotificationType.OrganizationInvite,

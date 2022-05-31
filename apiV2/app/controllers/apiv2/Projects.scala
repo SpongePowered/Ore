@@ -12,7 +12,7 @@ import play.api.mvc.{Action, AnyContent, RequestHeader, Result}
 import controllers.OreControllerComponents
 import controllers.apiv2.helpers._
 import controllers.sugar.Requests.ApiRequest
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.{ActionsAndStatsQueries, OrganizationQueries, PageQueries, ProjectQueries, UserQueries}
 import models.protocols.APIV2
 import models.querymodels.APIV2ProjectStatsQuery
 import models.viewhelper.ProjectData
@@ -72,7 +72,7 @@ class Projects(
         (splitted(0), splitted.lift(1))
       }
 
-      val getProjects = APIV2Queries
+      val getProjects = ProjectQueries
         .projectQuery(
           None,
           categories.toList,
@@ -90,7 +90,7 @@ class Projects(
         )
         .to[Vector]
 
-      val countProjects = APIV2Queries
+      val countProjects = ProjectQueries
         .projectCountQuery(
           None,
           categories.toList,
@@ -130,7 +130,7 @@ class Projects(
             if (settings.ownerName == user.name) ZIO.succeed((user.id.value, true))
             else
               service
-                .runDbCon(APIV2Queries.canUploadToOrg(user.id, settings.ownerName).option)
+                .runDbCon(OrganizationQueries.canUploadToOrg(user.id, settings.ownerName).option)
                 .get
                 .orElseFail(BadRequest(ApiError("Owner not found")))
           }
@@ -192,7 +192,7 @@ class Projects(
         .flatMap(request.permissionIn(_))
         .filterOrFail(_.has(Permission.ViewPublicInfo))(Left(()))
         .flatMap { _ =>
-          val dbCon = APIV2Queries
+          val dbCon = ProjectQueries
             .singleProjectQuery(
               projectOwner,
               projectSlug,
@@ -211,7 +211,7 @@ class Projects(
 
   def showProjectDescription(projectOwner: String, projectSlug: String): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF {
-      service.runDbCon(APIV2Queries.getPage(projectOwner, projectSlug, "Home").option).get.orElseFail(NotFound).map {
+      service.runDbCon(PageQueries.getPage(projectOwner, projectSlug, "Home").option).get.orElseFail(NotFound).map {
         case (_, _, _, contents) =>
           Ok(Json.obj("description" := contents))
       }
@@ -272,12 +272,12 @@ class Projects(
             val newSlug  = edits.name.fold(projectSlug)(StringUtils.slugify)
 
             //We need to be careful and use the new name and slug if they were changed
-            val update = service.runDbCon(APIV2Queries.updateProject(newOwner, newSlug, withoutNameAndOwner).run)
+            val update = service.runDbCon(ProjectQueries.updateProject(newOwner, newSlug, withoutNameAndOwner).run)
 
             //We need two queries two queries as we use the generic update function
             val get = service
               .runDbCon(
-                APIV2Queries
+                ProjectQueries
                   .singleProjectQuery(
                     newOwner,
                     newSlug,
@@ -308,7 +308,7 @@ class Projects(
       offset: Long
   ): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF { implicit r =>
-      Members.membersAction(APIV2Queries.projectMembers(projectOwner, projectSlug, _, _), limit, offset)
+      Members.membersAction(UserQueries.projectMembers(projectOwner, projectSlug, _, _), limit, offset)
     }
 
   def updateProjectMembers(projectOwner: String, projectSlug: String): Action[List[Members.MemberUpdate]] =
@@ -317,7 +317,7 @@ class Projects(
         Members.updateMembers[Project, ProjectUserRole, ProjectRoleTable](
           getSubject = projects.withSlug(projectOwner, projectSlug).someOrFail(NotFound),
           allowOrgMembers = true,
-          getMembersQuery = APIV2Queries.projectMembers(projectOwner, projectSlug, _, _),
+          getMembersQuery = UserQueries.projectMembers(projectOwner, projectSlug, _, _),
           createRole = ProjectUserRole(_, _, _),
           roleCompanion = ProjectUserRole,
           notificationType = NotificationType.ProjectInvite,
@@ -346,7 +346,7 @@ class Projects(
         (fromDate, toDate) = t
         _ <- ZIO.unit.filterOrFail(_ => fromDate < toDate)(BadRequest(ApiError("From date is after to date")))
         res <- service.runDbCon(
-          APIV2Queries
+          ActionsAndStatsQueries
             .projectStats(projectOwner, projectSlug, fromDate, toDate)
             .to[Vector]
             .map(APIV2ProjectStatsQuery.asProtocol)

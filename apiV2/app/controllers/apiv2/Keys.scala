@@ -8,7 +8,7 @@ import play.api.mvc.{Action, AnyContent, Result}
 
 import controllers.OreControllerComponents
 import controllers.apiv2.helpers.{APIScope, ApiError, ApiErrors}
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.AuthQueries
 import models.protocols.APIV2
 import ore.db.impl.OrePostgresDriver.api._
 import ore.db.impl.schema.ApiKeyTable
@@ -55,7 +55,7 @@ class Keys(
 
               val ifTaken = IO.fail(Conflict(ApiError("Name already taken")))
               val ifFree = service
-                .runDbCon(APIV2Queries.createApiKey(name, ownerId, tokenIdentifier, token, perm).run)
+                .runDbCon(AuthQueries.createApiKey(name, ownerId, tokenIdentifier, token, perm).run)
                 .map(_ => Ok(CreatedApiKey(s"$tokenIdentifier.$token", perm.toNamedSeq)))
 
               (service.runDBIO(nameTaken): IO[Result, Boolean]).ifM(ifTaken, ifFree)
@@ -71,7 +71,7 @@ class Keys(
         user <- ZIO
           .fromOption(request.user)
           .orElseFail(BadRequest(ApiError("Public keys can't be used to delete")))
-        rowsAffected <- service.runDbCon(APIV2Queries.deleteApiKey(name, user.id.value).run)
+        rowsAffected <- service.runDbCon(AuthQueries.deleteApiKey(name, user.id.value).run)
       } yield if (rowsAffected == 0) NotFound else NoContent
     }
 }

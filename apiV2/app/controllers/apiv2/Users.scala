@@ -7,7 +7,7 @@ import play.api.mvc.{Action, AnyContent, Result}
 import controllers.OreControllerComponents
 import controllers.apiv2.Users.{PaginatedCompactProjectResult, PaginatedUserResult, UserSortingStrategy}
 import controllers.apiv2.helpers.{APIScope, ApiError, Pagination}
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.{APIV2Queries, ActionsAndStatsQueries, UserQueries}
 import models.protocols.APIV2
 import models.viewhelper.HeaderData
 import ore.db.DbRef
@@ -33,7 +33,7 @@ class Users(
 
   def listUsers(
       q: Option[String],
-      minProjects: Option[Int],
+      minProjects: Option[Long],
       roles: Seq[Role],
       excludeOrganizations: Boolean,
       sort: Option[UserSortingStrategy],
@@ -45,10 +45,10 @@ class Users(
     val realOffset = offsetOrZero(offset)
 
     val getUsers = service.runDbCon(
-      APIV2Queries
+      UserQueries
         .userSearchQuery(
           q,
-          minProjects.getOrElse(0),
+          minProjects.getOrElse(0L),
           roles,
           excludeOrganizations,
           sort.getOrElse(UserSortingStrategy.Name),
@@ -60,10 +60,10 @@ class Users(
     )
 
     val userCount = service.runDbCon(
-      APIV2Queries
+      UserQueries
         .userSearchCountQuery(
           q,
-          minProjects.getOrElse(0),
+          minProjects.getOrElse(0L),
           roles,
           excludeOrganizations
         )
@@ -83,14 +83,14 @@ class Users(
 
   def showCurrentUser: Action[AnyContent] = ApiAction(Permission.ViewPublicInfo, APIScope.GlobalScope).asyncF { r =>
     r.user match {
-      case Some(user) => service.runDbCon(APIV2Queries.userQuery(user.name).unique).map(a => Ok(a.asJson))
+      case Some(user) => service.runDbCon(UserQueries.userQuery(user.name).unique).map(a => Ok(a.asJson))
       case None       => ZIO.fail(Unauthorized(ApiError("Only user sessions for this endpoint")))
     }
   }
 
   def showUser(user: String): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.GlobalScope).asyncF {
-      service.runDbCon(APIV2Queries.userQuery(user).option).map(_.fold(NotFound: Result)(a => Ok(a.asJson)))
+      service.runDbCon(UserQueries.userQuery(user).option).map(_.fold(NotFound: Result)(a => Ok(a.asJson)))
     }
 
   def showStarred(
@@ -104,8 +104,8 @@ class Users(
       sort,
       limit,
       offset,
-      APIV2Queries.starredQuery,
-      APIV2Queries.starredCountQuery
+      ActionsAndStatsQueries.starredQuery,
+      ActionsAndStatsQueries.starredCountQuery
     )
 
   def showWatching(
@@ -119,8 +119,8 @@ class Users(
       sort,
       limit,
       offset,
-      APIV2Queries.watchingQuery,
-      APIV2Queries.watchingCountQuery
+      ActionsAndStatsQueries.watchingQuery,
+      ActionsAndStatsQueries.watchingCountQuery
     )
 
   def showUserAction(
@@ -168,7 +168,7 @@ class Users(
 
   def getMemberships(user: String): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.GlobalScope).asyncF {
-      service.runDbCon(APIV2Queries.getMemberships(user).to[Vector]).map(r => Ok(r.asJson))
+      service.runDbCon(UserQueries.getMemberships(user).to[Vector]).map(r => Ok(r.asJson))
     }
 
   def showHeaderData(): Action[AnyContent] = ApiAction(Permission.ViewPublicInfo, APIScope.GlobalScope).asyncF { r =>
@@ -202,7 +202,6 @@ object Users {
     override def values: IndexedSeq[UserSortingStrategy] = findValues
 
     case object Name     extends UserSortingStrategy("name")
-    case object Roles    extends UserSortingStrategy("role")
     case object Joined   extends UserSortingStrategy("join_date")
     case object Projects extends UserSortingStrategy("project_count")
   }

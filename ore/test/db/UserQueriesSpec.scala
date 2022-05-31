@@ -15,12 +15,6 @@ class UserQueriesSpec extends DbSpec {
 
   implicit val config: OreConfig = ConfigSource.default.loadOrThrow[OreConfig]
 
-  /* Relies on a view and as such can't test NULL stuff reliably
-  test("GetProjects") {
-    check(UserQueries.getProjects("Foo", Some(0L), ProjectSortingStrategy.Default, 50, 0))
-  }
-   */
-
   test("GetAuthors") {
     check(UserPagesQueries.getAuthors(0, UserOrdering.Role))
   }

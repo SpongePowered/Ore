@@ -12,7 +12,7 @@ import play.api.mvc.{Codec => _, _}
 
 import controllers.OreControllerComponents
 import controllers.apiv2.helpers.{APIScope, ApiError}
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.AuthQueries
 import models.protocols.APIV2
 import ore.db.impl.OrePostgresDriver.api._
 import ore.models.api.ApiSession
@@ -77,7 +77,7 @@ class Authentication(
 
     val findApiKey = ZIO.accessM[HttpCredentials] { creds =>
       creds.params.get("apikey") match {
-        case Some(ApiKeyRegex(identifier, token)) => ZIO.succeed(APIV2Queries.findApiKey(identifier, token).option)
+        case Some(ApiKeyRegex(identifier, token)) => ZIO.succeed(AuthQueries.findApiKey(identifier, token).option)
         case _                                    => ZIO.fail(unAuth("No or invalid apikey parameter found in Authorization"))
       }
     }

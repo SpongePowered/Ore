@@ -1135,7 +1135,7 @@ GET      /projects/:pluginId/*path                                              
 #    403:
 #      $ref: '#/components/responses/ForbiddenError'
 ###
-GET     /users                                                @controllers.apiv2.Users.listUsers(q: Option[String], minProjects: Option[Int], roles: Seq[ore.permission.role.Role], excludeOrganizations: Boolean ?= false, sort: Option[controllers.apiv2.Users.UserSortingStrategy], sortDescending: Boolean ?= false, limit: Option[Long], offset: Long ?= 0)
+GET     /users                                                @controllers.apiv2.Users.listUsers(q: Option[String], minProjects: Option[Long], roles: Seq[ore.permission.role.Role], excludeOrganizations: Boolean ?= false, sort: Option[controllers.apiv2.Users.UserSortingStrategy], sortDescending: Boolean ?= false, limit: Option[Long], offset: Long ?= 0)
 
 
 ###

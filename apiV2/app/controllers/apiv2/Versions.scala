@@ -15,7 +15,7 @@ import play.api.mvc.{Action, AnyContent, MultipartFormData, Result}
 import controllers.OreControllerComponents
 import controllers.apiv2.helpers._
 import controllers.sugar.Requests.ApiRequest
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.{APIV2Queries, ActionsAndStatsQueries, VersionQueries}
 import models.protocols.APIV2
 import models.querymodels.{APIV2QueryVersion, APIV2VersionStatsQuery}
 import ore.OrePlatform
@@ -73,7 +73,7 @@ class Versions(
         (splitted(0), splitted.lift(1))
       }.toList
 
-      val getVersions = APIV2Queries
+      val getVersions = VersionQueries
         .versionQuery(
           projectOwner,
           projectSlug,
@@ -88,7 +88,7 @@ class Versions(
         )
         .to[Vector]
 
-      val countVersions = APIV2Queries
+      val countVersions = VersionQueries
         .versionCountQuery(
           projectOwner,
           projectSlug,
@@ -115,7 +115,7 @@ class Versions(
       implicit request =>
         service
           .runDbCon(
-            APIV2Queries
+            VersionQueries
               .singleVersionQuery(
                 projectOwner,
                 projectSlug,
@@ -211,12 +211,12 @@ class Versions(
                 version.foldLeftKC(false)(acc => Lambda[Option ~>: Const[Boolean]#λ](op => acc || op.isDefined))
               val doEdit =
                 if (!needEdit) Applicative[ConnectionIO].unit
-                else APIV2Queries.updateVersion(projectOwner, projectSlug, name, version).run.void
+                else VersionQueries.updateVersion(projectOwner, projectSlug, name, version).run.void
 
               handlePlatforms *> service
                 .runDbCon(
                   //We need two queries as we use the generic update function
-                  doEdit *> APIV2Queries
+                  doEdit *> VersionQueries
                     .singleVersionQuery(
                       projectOwner,
                       projectSlug,
@@ -291,7 +291,7 @@ class Versions(
         (fromDate, toDate) = t
         _ <- ZIO.unit.filterOrFail(_ => fromDate < toDate)(BadRequest(ApiError("From date is after to date")))
         res <- service.runDbCon(
-          APIV2Queries
+          ActionsAndStatsQueries
             .versionStats(projectOwner, projectSlug, version, fromDate, toDate)
             .to[Vector]
             .map(APIV2VersionStatsQuery.asProtocol)

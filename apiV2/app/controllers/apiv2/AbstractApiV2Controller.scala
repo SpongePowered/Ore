@@ -12,7 +12,7 @@ import controllers.apiv2.helpers.{APIScope, ApiError, ApiErrors}
 import controllers.sugar.CircePlayController
 import controllers.sugar.Requests.{ApiAuthInfo, ApiRequest}
 import controllers.{OreBaseController, OreControllerComponents}
-import db.impl.query.APIV2Queries
+import db.impl.query.apiv2.{APIV2Queries, AuthQueries}
 import ore.db.impl.OrePostgresDriver.api._
 import ore.db.impl.schema.{OrganizationTable, ProjectTable, UserTable}
 import ore.models.api.ApiSession
@@ -95,7 +95,7 @@ abstract class AbstractApiV2Controller(lifecycle: ApplicationLifecycle)(
           .fromOption(creds.params.get("session"))
           .orElseFail(unAuth("No session specified"))
         info <- service
-          .runDbCon(APIV2Queries.getApiAuthInfo(token).option)
+          .runDbCon(AuthQueries.getApiAuthInfo(token).option)
           .get
           .orElseFail(unAuth("Invalid session"))
         scopePerms <- {
