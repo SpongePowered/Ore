@@ -27,6 +27,7 @@ module.exports = {
     'import/first': 'error',
     'import/no-mutable-exports': 'error',
     'import/no-unresolved': 'off',
+    'import/no-named-as-default-member': 'off',
     'arrow-parens': 'off',
     'generator-star-spacing': 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
@@ -46,6 +47,7 @@ module.exports = {
     'object-shorthand': 'error',
     'no-useless-rename': 'error',
 
+    'vue/multi-word-component-names': 'off',
     'vue/no-parsing-error': [
       'error',
       {
