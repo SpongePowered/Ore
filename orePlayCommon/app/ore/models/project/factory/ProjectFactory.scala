@@ -65,7 +65,7 @@ trait ProjectFactory {
       ZIO.fail("error.plugin.fileExtension")
     else {
       // create and load a new PluginFile instance for further processing
-      new PluginFile(uploadData.pluginFile, owner).loadMeta[Task].orDie.absolve
+      new PluginFile(uploadData.pluginFile, pluginFileName, owner).loadMeta[Task].orDie.absolve
     }
   }
 
@@ -237,7 +237,7 @@ trait ProjectFactory {
     val oldPath = plugin.path
 
     val versionDir = this.fileManager.getVersionDir(project.ownerName, project.name, version.name)
-    val newPath    = versionDir.resolve(oldPath.getFileName)
+    val newPath    = versionDir.resolve(plugin.pluginFileName)
 
     val move: ZIO[Blocking, Nothing, Right[Nothing, Unit]] = {
       val createDirs = ZIO.whenM(fileIO.notExists(newPath.getParent)) {

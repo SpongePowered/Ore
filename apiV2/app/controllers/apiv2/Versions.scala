@@ -342,7 +342,7 @@ class Versions(
           0,
           pluginFile.fileSize,
           pluginFile.md5,
-          pluginFile.fileName,
+          pluginFile.pluginFileName,
           Some(user.name),
           ReviewState.Unreviewed,
           pluginFile.entries.exists(_.mixin),

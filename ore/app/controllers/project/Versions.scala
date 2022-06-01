@@ -447,7 +447,7 @@ class Versions(stats: StatTracker[UIO])(
               if (fileName.endsWith(".jar"))
                 IO.succeed(Ok.sendPath(path))
               else {
-                val pluginFile = new PluginFile(path, projectOwner)
+                val pluginFile = new PluginFile(path, path.getFileName.toString, projectOwner)
                 val jarName    = fileName.substring(0, fileName.lastIndexOf('.')) + ".jar"
                 val jarPath    = env.tmp.resolve(project.ownerName).resolve(jarName)
 

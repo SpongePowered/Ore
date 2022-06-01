@@ -10,7 +10,12 @@ import ore.{OreConfig, OrePlatform}
 
 import cats.effect.Sync
 
-class PluginFileWithData(val path: Path, val user: Model[User], val entries: List[PluginInfoParser.Entry])(
+class PluginFileWithData(
+    val path: Path,
+    val pluginFileName: String,
+    val user: Model[User],
+    val entries: List[PluginInfoParser.Entry]
+)(
     implicit config: OreConfig
 ) {
 
@@ -24,8 +29,6 @@ class PluginFileWithData(val path: Path, val user: Model[User], val entries: Lis
   lazy val md5: String = StringUtils.md5ToHex(Files.readAllBytes(this.path))
 
   lazy val fileSize: Long = Files.size(path)
-
-  lazy val fileName: String = path.getFileName.toString
 
   lazy val dependencyIds: Seq[String]              = entries.flatMap(_.dependencies).map(_.identifier)
   lazy val dependencyVersions: Seq[Option[String]] = entries.flatMap(_.dependencies).map(_.rawVersion)
@@ -53,7 +56,7 @@ class PluginFileWithData(val path: Path, val user: Model[User], val entries: Lis
     hash = md5,
     authorId = Some(user.id),
     description = description,
-    fileName = fileName,
+    fileName = pluginFileName,
     createForumPost = createForumPost,
     tags = Version.VersionTags(
       usesMixin = entries.exists(_.mixin),
