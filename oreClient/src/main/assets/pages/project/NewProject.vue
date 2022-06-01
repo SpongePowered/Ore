@@ -76,6 +76,8 @@
               </select>
             </div>
 
+            <p class="minor create-blurb">Make sure everything is correct before creating your project.</p>
+
             <button class="btn btn-primary" @click="create()">Create project</button>
           </div>
         </div>

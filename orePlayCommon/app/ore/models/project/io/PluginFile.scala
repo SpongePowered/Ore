@@ -24,7 +24,7 @@ import cats.syntax.all._
   *
   * @param path Path to uploaded file
   */
-class PluginFile(val path: Path, val user: Model[User]) {
+class PluginFile(val path: Path, val pluginFileName: String, val user: Model[User]) {
 
   /**
     * Reads the temporary file's plugin meta file and returns the result.
@@ -57,7 +57,7 @@ class PluginFile(val path: Path, val user: Model[User]) {
             if (entries.isEmpty)
               Left(messages("error.plugin.metaNotFound"))
             else
-              Right(new PluginFileWithData(path, user, entriesWithMixin))
+              Right(new PluginFileWithData(path, pluginFileName, user, entriesWithMixin))
           }
         }
       }
@@ -71,7 +71,7 @@ class PluginFile(val path: Path, val user: Model[User]) {
     * @return InputStream of JAR
     */
   def newJarStream[F[_]](implicit F: Sync[F]): Resource[F, Either[String, InputStream]] = {
-    if (this.path.toString.endsWith(".jar"))
+    if (this.pluginFileName.endsWith(".jar"))
       Resource
         .fromAutoCloseable[F, InputStream](F.delay(Files.newInputStream(this.path)))
         .flatMap(is => Resource.pure(Right(is)))
