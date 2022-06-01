@@ -81,15 +81,22 @@ const actions = {
       })
     }
   },
-  setActiveProject(context, project) {
+  async setActiveProject(context, project) {
     if (!context.state.project || !isEqual(context.state.project.namespace, project)) {
-      API.request('projects?exact=true&owner=' + project.owner + '&q=' + project.slug).then((res) => {
-        if (res.result.length) {
-          context.dispatch('setActiveProjectFromFetched', res.result[0])
-        } else {
+      let res
+      try {
+        res = await API.projectRequest(project)
+      } catch (e) {
+        if (e === 404) {
           context.dispatch('projectNotFound')
+        } else {
+          throw e
         }
-      })
+      }
+
+      if (res) {
+        context.dispatch('setActiveProjectFromFetched', res)
+      }
     }
   },
 }
