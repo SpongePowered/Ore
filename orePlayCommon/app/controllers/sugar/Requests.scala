@@ -2,21 +2,24 @@ package controllers.sugar
 
 import java.time.OffsetDateTime
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.mvc.{Request, Results, WrappedRequest}
 
 import models.viewhelper._
+import ore.db.access.ModelView
+import ore.db.impl.OrePostgresDriver.api._
 import ore.db.{Model, ModelService}
 import ore.models.api.ApiKey
 import ore.models.organization.Organization
-import ore.models.project.Project
+import ore.models.project.{Project, Version}
 import ore.models.user.User
 import ore.permission.Permission
-import ore.permission.scope.{GlobalScope, HasScope}
+import ore.permission.scope.{GlobalScope, HasScope, OrganizationScope, ProjectScope, Scope}
 import ore.util.OreMDC
 import util.syntax._
 
 import cats.Applicative
 import org.slf4j.MDC
+import zio.{UIO, ZIO}
 
 /**
   * Contains the custom WrappedRequests used by Ore.
@@ -40,7 +43,7 @@ object Requests {
           .getOrElse(F.pure(globalPerms))
   }
 
-  case class ApiRequest[A](apiInfo: ApiAuthInfo, scopePermission: Permission, request: Request[A])
+  case class ApiRequest[S <: Scope, A](apiInfo: ApiAuthInfo, scopePermission: Permission, scope: S, request: Request[A])
       extends WrappedRequest[A](request)
       with OreMDC {
     def user: Option[Model[User]] = apiInfo.user
@@ -56,6 +59,24 @@ object Requests {
     }
 
     override def afterLog(): Unit = mdcClear()
+
+    def project(implicit service: ModelService[UIO], ev: S =:= ProjectScope): ZIO[Any, Results.Status, Model[Project]] =
+      ModelView.now(Project).get(ev(scope).id).toZIO.orElseFail(Results.NotFound)
+
+    def version(
+        versionString: String
+    )(implicit service: ModelService[UIO], ev: S =:= ProjectScope): ZIO[Any, Results.Status, Model[Version]] =
+      ModelView
+        .now(Version)
+        .find(v => v.projectId === ev(scope).id && v.versionString === versionString)
+        .toZIO
+        .orElseFail(Results.NotFound)
+
+    def organization(
+        implicit service: ModelService[UIO],
+        ev: S =:= OrganizationScope
+    ): ZIO[Any, Results.Status, Model[Organization]] =
+      ModelView.now(Organization).get(ev(scope).id).toZIO.orElseFail(Results.NotFound)
   }
 
   private def mdcPutUser(user: Model[User]): Unit = {

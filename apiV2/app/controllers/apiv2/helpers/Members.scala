@@ -49,7 +49,7 @@ object Members {
       limit: Option[Long],
       offset: Long
   )(
-      implicit r: ApiRequest[_],
+      implicit r: ApiRequest[_, _],
       service: ModelService[UIO],
       writeJson: Writeable[Json]
   ): ZIO[Any, Nothing, Result] = {
@@ -76,7 +76,7 @@ object Members {
       notificationType: NotificationType,
       notificationLocalization: String
   )(
-      implicit r: ApiRequest[List[MemberUpdate]],
+      implicit r: ApiRequest[_, List[MemberUpdate]],
       service: ModelService[UIO],
       users: UserBase[UIO],
       memberships: MembershipDossier.Aux[UIO, A, R, RT],

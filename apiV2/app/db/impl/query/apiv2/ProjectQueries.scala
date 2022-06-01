@@ -8,7 +8,7 @@ import models.querymodels.APIV2QueryProject
 import ore.{OreConfig, OrePlatform}
 import ore.data.project.Category
 import ore.db.DbRef
-import ore.models.project.{ProjectSortingStrategy, Version}
+import ore.models.project.{Project, ProjectSortingStrategy, Version}
 import ore.models.project.io.ProjectFiles
 import ore.models.user.User
 
@@ -237,7 +237,7 @@ object ProjectQueries extends APIV2Queries {
       )
     )
 
-  def updateProject(projectOwner: String, projectSlug: String, edits: Projects.EditableProject): Update0 = {
+  def updateProject(projectId: DbRef[Project], edits: Projects.EditableProject): Update0 = {
     val projectColumns = Projects.EditableProjectF[Column](
       Column.arg("name"),
       Projects.EditableProjectNamespaceF[Column](Column.arg("owner_name")),
@@ -264,6 +264,6 @@ object ProjectQueries extends APIV2Queries {
       (fr", owner_id = u.id", fr"FROM users u", fr"AND u.name = $owner")
     }
 
-    (updateTable("projects", projectColumns, edits) ++ newOwnerSet ++ newOwnerFrom ++ fr" WHERE owner_name = $projectOwner AND lower(slug) = lower($projectSlug) " ++ newOwnerFilter).update
+    (updateTable("projects p", projectColumns, edits) ++ newOwnerSet ++ newOwnerFrom ++ fr" WHERE p.id = $projectId " ++ newOwnerFilter).update
   }
 }

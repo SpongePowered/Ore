@@ -22,18 +22,24 @@ class Permissions(
       projectOwner: Option[String],
       projectSlug: Option[String],
       organizationName: Option[String]
-  ): Action[AnyContent] =
-    CachingApiAction(Permission.None, APIScope.GlobalScope).asyncF { implicit request =>
-      permissionsInApiScope(projectOwner, projectSlug, organizationName).map {
-        case (scope, perms) =>
+  ): Action[AnyContent] = {
+    createApiScope(projectOwner, projectSlug, organizationName) match {
+      case Right(scope) =>
+        CachingApiAction(Permission.None, scope) { implicit request =>
           Ok(
             KeyPermissions(
               scope.tpe,
-              perms.toNamedSeq.toList
+              request.scopePermission.toNamedSeq.toList
             )
           )
-      }
+        }
+      case Left(error) =>
+        //We still run auth and such
+        CachingApiAction(Permission.None, APIScope.GlobalScope) {
+          error
+        }
     }
+  }
 
   def has(
       checkPermissions: Seq[NamedPermission],

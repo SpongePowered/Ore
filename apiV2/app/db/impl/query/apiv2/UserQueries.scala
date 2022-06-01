@@ -4,6 +4,9 @@ import controllers.apiv2.Users
 import controllers.apiv2.Users.UserSortingStrategy
 import models.protocols.APIV2
 import models.querymodels.{APIV2QueryMember, APIV2QueryMembership, APIV2QueryUser}
+import ore.db.DbRef
+import ore.models.organization.Organization
+import ore.models.project.Project
 import ore.permission.role.Role
 
 import cats.data.NonEmptyList
@@ -125,22 +128,22 @@ object UserQueries extends APIV2Queries {
       .query[APIV2QueryMember]
       .map(_.asProtocol)
 
-  def projectMembers(projectOwner: String, projectSlug: String, limit: Long, offset: Long): Query0[APIV2.Member] =
+  def projectMembers(projectId: DbRef[Project], limit: Long, offset: Long): Query0[APIV2.Member] =
     members(
       fr"projects",
       fr"user_project_roles",
       (p, upr) => fr"$p.id = $upr.project_id",
-      p => fr"$p.owner_name = $projectOwner AND lower($p.slug) = lower($projectSlug)",
+      p => fr"$p.id = $projectId",
       limit,
       offset
     )
 
-  def orgaMembers(organization: String, limit: Long, offset: Long): Query0[APIV2.Member] =
+  def orgaMembers(organizationId: DbRef[Organization], limit: Long, offset: Long): Query0[APIV2.Member] =
     members(
       fr"organizations",
       fr"user_organization_roles",
       (o, opr) => fr"$o.id = $opr.organization_id",
-      o => fr"$o.name = $organization",
+      o => fr"$o.id = $organizationId",
       limit,
       offset
     )
