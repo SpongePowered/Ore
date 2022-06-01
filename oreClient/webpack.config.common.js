@@ -6,7 +6,6 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const rootDir = Path.resolve(__dirname)
 const resourcesDir = Path.resolve(rootDir, 'src', 'main', 'assets')
 const entryDir = Path.resolve(resourcesDir, 'entries')
-const modulesDir = Path.resolve(__dirname, 'node_modules')
 
 const outputDir =
   process.env.FROM_SBT === 'true'
@@ -23,7 +22,7 @@ module.exports = {
     path: outputDir,
     filename: '[name].js',
     libraryTarget: 'umd',
-    publicPath: '/',
+    publicPath: process.env.FROM_SBT === 'true' ? '/assets/lib/ore-client/' : '/',
   },
   plugins: [
     new VueLoaderPlugin(),
@@ -72,15 +71,7 @@ module.exports = {
       },
       {
         test: /\.(png|jpe?g|gif|svg)$/i,
-        use: [
-          {
-            loader: 'file-loader',
-            options: {
-              publicPath: process.env.FROM_SBT === 'true' ? '/assets/lib/ore-client' : undefined,
-              esModule: false,
-            },
-          },
-        ],
+        type: 'asset/resource',
       },
     ],
   },
@@ -89,7 +80,6 @@ module.exports = {
     alias: {
       vue$: 'vue/dist/vue.esm.js',
     },
-    modules: [modulesDir],
   },
   devServer: {
     historyApiFallback: true,

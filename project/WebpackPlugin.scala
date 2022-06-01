@@ -157,15 +157,17 @@ object WebpackPlugin extends AutoPlugin {
             logger.error("Error parsing webpack stats output")
             // In case of error print the result and return None. it will be ignored upstream
             e.foreach {
-              case (p, v) => logger.error(s"$p: ${v.mkString(",")}")
+              case (p, v) => logger.error(s"$p: ${v.mkString(", ")}")
             }
             None
           case JsSuccess(p, _) =>
             if (p.warnings.nonEmpty || p.errors.nonEmpty) {
               logger.info("")
               // Filtering is a workaround for #111
-              p.warnings.filterNot(_.contains("https://raw.githubusercontent.com")).foreach(x => logger.warn(x))
-              p.errors.foreach(x => logger.error(x))
+              p.warnings
+                .filterNot(_.stack.contains("https://raw.githubusercontent.com"))
+                .foreach(x => x.print(Level.Warn, logger))
+              p.errors.foreach(x => x.print(Level.Error, logger))
             }
             Some(p)
         }

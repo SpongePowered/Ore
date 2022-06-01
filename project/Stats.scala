@@ -8,6 +8,7 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 
 import sbt.Logger
+import sbt.util.Level
 
 object Stats {
 
@@ -40,13 +41,26 @@ object Stats {
 
   }
 
+  final case class WarningsErrors(
+      message: String,
+      details: Option[String],
+      stack: String
+  ) {
+
+    def print(level: Level.Value, log: Logger): Unit = {
+      log.log(level, message)
+      log.log(level, "")
+      log.log(level, stack)
+    }
+  }
+
   final case class WebpackStats(
       version: String,
       hash: String,
       time: Long,
       outputPath: Option[Path],
-      errors: List[String],
-      warnings: List[String],
+      errors: List[WarningsErrors],
+      warnings: List[WarningsErrors],
       assets: List[Asset]
   ) {
 
@@ -105,7 +119,13 @@ object Stats {
       .read[String]
       .and((JsPath \ "size").read[Long])
       .and((JsPath \ "emitted").readNullable[Boolean])
-      .and((JsPath \\ "chunkNames").read[List[String]])(Asset.apply _)
+      .and((JsPath \ "chunkNames").read[List[String]])(Asset.apply _)
+
+  implicit val warningsErrorsReads: Reads[WarningsErrors] =
+    (JsPath \ "message")
+      .read[String]
+      .and((JsPath \ "details").readNullable[String])
+      .and((JsPath \ "stack").read[String])(WarningsErrors.apply _)
 
   implicit val statsReads: Reads[WebpackStats] =
     (JsPath \ "version")
@@ -114,8 +134,8 @@ object Stats {
       .and((JsPath \ "time").read[Long])
       // It seems webpack 2 doesn't produce outputPath
       .and((JsPath \ "outputPath").readNullable[String].map(x => x.map(new File(_).toPath)))
-      .and((JsPath \ "errors").read[List[String]])
-      .and((JsPath \ "warnings").read[List[String]])
+      .and((JsPath \ "errors").read[List[WarningsErrors]])
+      .and((JsPath \ "warnings").read[List[WarningsErrors]])
       .and((JsPath \ "assets").read[List[Asset]])(WebpackStats.apply _)
 
 }

@@ -74,7 +74,7 @@
 <script>
 import markdownIt from 'markdown-it'
 import markdownItAnchor from 'markdown-it-anchor'
-import markdownItWikilinks from 'markdown-it-wikilinks'
+//import markdownItWikilinks from 'markdown-it-wikilinks' //TODO: Find/make an replacement
 import markdownItTaskLists from 'markdown-it-task-lists'
 import Modal from './Modal'
 
@@ -130,13 +130,13 @@ export default {
         typographer: true,
       })
         .use(markdownItAnchor)
-        .use(
+        /*.use(
           markdownItWikilinks({
             baseUrl: this.markdownBaseUrl,
             relativeBaseURL: this.markdownRelativeBaseUrl,
             uriSuffix: '',
           })
-        )
+        )*/
         .use(markdownItTaskLists)
 
       mdInstance.linkify.set({})
