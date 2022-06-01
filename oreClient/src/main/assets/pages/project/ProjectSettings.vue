@@ -5,9 +5,7 @@
         <!-- Main settings -->
         <div class="panel panel-default panel-settings">
           <div class="panel-heading">
-            <h3 class="panel-title pull-left">
-              Settings
-            </h3>
+            <h3 class="panel-title pull-left">Settings</h3>
             <template v-if="permissions.includes('see_hidden')">
               <btn-hide
                 :current-visibility="project.visibility"
@@ -164,7 +162,7 @@
                     <span class="license">{{ licenseName }}</span>
                     <span class="caret" />
                   </button>
-                  <input v-model="licenseName" type="text" class="form-control" style="display: none;" />
+                  <input v-model="licenseName" type="text" class="form-control" style="display: none" />
                   <ul class="dropdown-menu dropdown-license">
                     <li><a>MIT</a></li>
                     <li><a>Apache 2.0</a></li>
@@ -206,9 +204,7 @@
 
         <div class="panel panel-default panel-settings">
           <div clasS="panel-heading">
-            <h3 class="panel-title pull-left">
-              Danger area
-            </h3>
+            <h3 class="panel-title pull-left">Danger area</h3>
           </div>
 
           <div class="panel-body">
@@ -227,9 +223,7 @@
                   <div class="icon-description">
                     <p>Upload an image representative of your project.</p>
                     <div class="btn-group pull-right">
-                      <button class="btn btn-default btn-reset" @click.prevent="resetIcon">
-                        Reset
-                      </button>
+                      <button class="btn btn-default btn-reset" @click.prevent="resetIcon">Reset</button>
                       <button
                         class="btn btn-info btn-upload pull-right"
                         :disabled="!selectedLogo"
@@ -312,9 +306,7 @@
             <!-- Rename -->
             <div class="setting">
               <div class="setting-description">
-                <h4 class="danger">
-                  Rename
-                </h4>
+                <h4 class="danger">Rename</h4>
                 <p>
                   Rename project. <strong>NOTE: This will not change the project's plugin id, only it's name.</strong>
                 </p>
@@ -337,9 +329,7 @@
             <!-- Transfer -->
             <div class="setting">
               <div class="setting-description">
-                <h4 class="danger">
-                  Transfer
-                </h4>
+                <h4 class="danger">Transfer</h4>
                 <p>Transfer project ownership.</p>
               </div>
               <div class="setting-content">
@@ -364,9 +354,7 @@
             <!-- Delete -->
             <div v-if="permissions.includes('delete_project')" class="setting">
               <div class="setting-description">
-                <h4 class="danger">
-                  Delete
-                </h4>
+                <h4 class="danger">Delete</h4>
                 <p>Once you delete a project, it cannot be recovered.</p>
               </div>
               <div class="setting-content">
@@ -379,9 +367,7 @@
 
             <div v-if="permissions.includes('hard_delete_project')" class="setting striped">
               <div class="setting-description">
-                <h4 class="danger">
-                  Hard Delete
-                </h4>
+                <h4 class="danger">Hard Delete</h4>
                 <p>Once you delete a project, it cannot be recovered.</p>
               </div>
               <div class="setting-content">

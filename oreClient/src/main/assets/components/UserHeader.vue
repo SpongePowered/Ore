@@ -10,7 +10,7 @@
         />
 
         <template v-if="user && canEditOrgSettings">
-          <div class="edit-avatar" style="display: none;">
+          <div class="edit-avatar" style="display: none">
             <a :href="routes.Organizations.updateAvatar(user.name).absoluteURL()"
               ><i class="fas fa-edit" /> Edit avatar</a
             >
@@ -56,9 +56,7 @@
 
           <div class="user-tag">
             <i v-if="user && user.tagline" class="minor">{{ user.tagline }}</i>
-            <i v-else-if="isCurrentUser || canEditOrgSettings" class="minor">
-              Add a tagline
-            </i>
+            <i v-else-if="isCurrentUser || canEditOrgSettings" class="minor"> Add a tagline </i>
 
             <a v-if="isCurrentUser || canEditOrgSettings" href="#" data-toggle="modal" data-target="#modal-tagline">
               <i class="fas fa-edit" />

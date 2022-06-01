@@ -6,9 +6,7 @@
     </h3>
     <div class="popover-content">
       <p>{{ prompt.message }}</p>
-      <button class="btn btn-success btn-sm" @click="acknowledgePrompt">
-        Got it!
-      </button>
+      <button class="btn btn-success btn-sm" @click="acknowledgePrompt">Got it!</button>
     </div>
   </div>
 </template>

@@ -3,9 +3,7 @@
     <div class="col-xs-12">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">
-            Create a new project
-          </h3>
+          <h3 class="panel-title">Create a new project</h3>
         </div>
 
         <div v-if="memberships && currentUser" class="panel-body project-body">
@@ -78,9 +76,7 @@
               </select>
             </div>
 
-            <button class="btn btn-primary" @click="create()">
-              Create project
-            </button>
+            <button class="btn btn-primary" @click="create()">Create project</button>
           </div>
         </div>
       </div>

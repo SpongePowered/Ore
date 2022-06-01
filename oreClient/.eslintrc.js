@@ -4,7 +4,10 @@ module.exports = {
     browser: true,
   },
   parserOptions: {
-    parser: 'babel-eslint',
+    parser: '@babel/eslint-parser',
+    // So that it doesn't complain about node_modules.
+    // Help me fix this properly Felix
+    requireConfigFile: false,
   },
   extends: [
     'standard',
@@ -13,7 +16,7 @@ module.exports = {
     'plugin:vue/recommended',
     'plugin:prettier/recommended',
   ],
-  plugins: ['vue', 'babel', 'prettier'],
+  plugins: ['vue', '@babel/eslint-plugin', 'prettier'],
   globals: {
     $: 'readonly',
     jsRoutes: 'readonly',

@@ -7,9 +7,7 @@
     <div class="col-md-3">
       <div class="panel panel-default channels">
         <div class="panel-heading">
-          <h3 class="panel-title pull-left">
-            Stability
-          </h3>
+          <h3 class="panel-title pull-left">Stability</h3>
           <input
             type="checkbox"
             class="pull-right channels-all"
@@ -37,9 +35,7 @@
 
       <div class="panel panel-default channels">
         <div class="panel-heading">
-          <h3 class="panel-title pull-left">
-            Platforms
-          </h3>
+          <h3 class="panel-title pull-left">Platforms</h3>
           <input
             type="checkbox"
             class="pull-right channels-all"
@@ -62,15 +58,11 @@
                 class="pull-right"
                 @change="processSelection(platform.id, $event, 'minecraftVersions')"
               >
-                <option value="$all">
-                  All
-                </option>
+                <option value="$all">All</option>
                 <option v-for="(v, name) in platform.minecraftVersions" :key="name" :value="name">
                   {{ name }}
                 </option>
-                <option value="$none">
-                  None
-                </option>
+                <option value="$none">None</option>
               </select>
             </template>
             <template v-else>
@@ -79,15 +71,11 @@
                 class="pull-right"
                 @change="processSelection(platform.id, $event, 'versions')"
               >
-                <option value="$all">
-                  All
-                </option>
+                <option value="$all">All</option>
                 <option v-for="(v, name) in platform.versions" :key="name" :value="name">
                   {{ name }}
                 </option>
-                <option value="$none">
-                  None
-                </option>
+                <option value="$none">None</option>
               </select>
             </template>
           </li>

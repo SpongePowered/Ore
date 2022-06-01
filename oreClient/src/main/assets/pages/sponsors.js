@@ -22,6 +22,6 @@ export default [
   {
     name: 'Minecraft Index',
     image: require('../images/sponsors/minecraftindex.svg'),
-    link: 'https://minecraftindex.net/'
+    link: 'https://minecraftindex.net/',
   },
 ]

@@ -18,7 +18,7 @@
             <div class="container-fluid">
               <div class="row">
                 <div class="col-xs-4">
-                  <span class="text-bold" style="font-size: 16px;">{{ version.name }}</span>
+                  <span class="text-bold" style="font-size: 16px">{{ version.name }}</span>
                 </div>
                 <div class="col-xs-4">
                   <span class="channel" :style="{ background: stabilities.fromId(version.tags.stability).color }">{{

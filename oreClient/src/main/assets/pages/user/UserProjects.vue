@@ -14,9 +14,7 @@
     <div class="col-md-4">
       <div v-if="orga && canEditOrgMembers" class="panel-user-info panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">
-            Project Manager
-          </h3>
+          <h3 class="panel-title">Project Manager</h3>
         </div>
         <table class="table panel-body">
           <tbody>
@@ -61,9 +59,7 @@
       <template v-if="!orga">
         <div class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">
-              Organizations
-            </h3>
+            <h3 class="panel-title">Organizations</h3>
           </div>
           <table v-if="user" class="table panel-body">
             <tbody>

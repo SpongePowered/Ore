@@ -8,9 +8,7 @@
               <img src="../images/ore-colored.svg" alt="Ore logo" />
             </div>
             <div class="col-xs-10 text">
-              <div class="headline">
-                Ore
-              </div>
+              <div class="headline">Ore</div>
               <div>A Minecraft package repository</div>
             </div>
           </div>
@@ -65,9 +63,7 @@
           <label for="relevanceBox">Sort with relevance</label>
           <div class="panel panel-default">
             <div class="panel-heading">
-              <h3 class="panel-title">
-                Categories
-              </h3>
+              <h3 class="panel-title">Categories</h3>
               <a v-if="categories.length > 0" class="category-reset" @click="categories = []">
                 <FontAwesomeIcon class="white" :icon="['fas', 'times']" />
               </a>
@@ -88,9 +84,7 @@
           </div>
           <div class="panel panel-default">
             <div class="panel-heading">
-              <h3 class="panel-title">
-                Platforms
-              </h3>
+              <h3 class="panel-title">Platforms</h3>
             </div>
 
             <div class="list-group platform-list">

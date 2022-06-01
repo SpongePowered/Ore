@@ -29,9 +29,7 @@
 
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">
-            Promoted Versions
-          </h3>
+          <h3 class="panel-title">Promoted Versions</h3>
         </div>
 
         <ul v-if="project" class="list-group promoted-list">
@@ -39,7 +37,7 @@
             v-for="version in project.promoted_versions"
             :key="version.version"
             class="list-group-item row row-no-gutters"
-            style="line-height: 2.4em;"
+            style="line-height: 2.4em"
           >
             <div class="col-lg-8 col-12">
               <router-link
@@ -70,9 +68,7 @@
 
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">
-            Pages
-          </h3>
+          <h3 class="panel-title">Pages</h3>
           <template v-if="permissions.includes('edit_page')">
             <button
               class="new-page btn yellow btn-xs pull-right"
@@ -89,7 +85,7 @@
               :title="newPage ? 'Create a new page' : 'Edit page'"
               :on-close="resetPutPage"
             >
-              <h4 v-if="pagePutError" id="page-label-error" class="modal-title" style="display: none; color: red;">
+              <h4 v-if="pagePutError" id="page-label-error" class="modal-title" style="display: none; color: red">
                 Error updating page {{ pagePutError }}
               </h4>
 
@@ -117,9 +113,7 @@
                   </div>
                   <div class="setting-content">
                     <select v-model="requestPage.parent" class="form-control select-parent">
-                      <option selected value="null">
-                        &lt;none&gt;
-                      </option>
+                      <option selected value="null">&lt;none&gt;</option>
                       <option
                         v-for="(forPage, index) in pages"
                         :key="index"
@@ -157,12 +151,8 @@
               </div>
 
               <template #footer>
-                <button type="button" class="btn btn-default" data-dismiss="modal" @click="resetPutPage">
-                  Close
-                </button>
-                <button v-if="!newPage" type="button" class="btn btn-danger" @click="deletePage">
-                  Delete
-                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" @click="resetPutPage">Close</button>
+                <button v-if="!newPage" type="button" class="btn btn-danger" @click="deletePage">Delete</button>
                 <button
                   :disabled="!requestPage.name || requestPage.name.includes('/')"
                   type="button"

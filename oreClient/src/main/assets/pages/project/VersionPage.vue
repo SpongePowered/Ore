@@ -206,7 +206,7 @@
               <div
                 v-if="permissions.includes('view_logs')"
                 class="dropdown dropdown-menu-right"
-                style="display: inline-block;"
+                style="display: inline-block"
               >
                 <button
                   id="admin-version-actions"
@@ -238,7 +238,7 @@
                         (publicVersions > 1 || versionObj.visibility === 'softDelete')
                       "
                     >
-                      <a href="#" data-toggle="modal" data-target="#modal-harddelete" style="color: darkred;">
+                      <a href="#" data-toggle="modal" data-target="#modal-harddelete" style="color: darkred">
                         Hard delete
                       </a>
                     </li>
@@ -278,9 +278,7 @@
       <div class="col-md-4">
         <div v-if="dependencyObs" class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">
-              Dependencies
-            </h3>
+            <h3 class="panel-title">Dependencies</h3>
           </div>
           <ul class="list-group">
             <li
@@ -334,12 +332,10 @@
 
         <div v-if="editVersion" class="panel panel-default">
           <div class="panel-heading">
-            <h3 clasS="panel-title">
-              Tags
-            </h3>
+            <h3 clasS="panel-title">Tags</h3>
           </div>
           <ul class="list-group">
-            <li class="list-group-item" style="padding-bottom: 20px;">
+            <li class="list-group-item" style="padding-bottom: 20px">
               <div class="form-inline">
                 <label for="setStability">Stability</label>
                 <select id="setStability" v-model="editStability" class="form-control pull-right">
@@ -349,13 +345,11 @@
                 </select>
               </div>
             </li>
-            <li class="list-group-item" style="padding-bottom: 20px;">
+            <li class="list-group-item" style="padding-bottom: 20px">
               <div class="form-inline">
                 <label for="setReleaseType">Release Type</label>
                 <select id="setReleaseType" v-model="editReleaseType" class="form-control pull-right">
-                  <option :value="null">
-                    None
-                  </option>
+                  <option :value="null">None</option>
                   <option
                     v-for="releaseTypeObj in releaseType.values"
                     :key="releaseTypeObj.id"
@@ -371,9 +365,7 @@
 
         <div v-if="editVersion" class="panel panel-default">
           <div class="panel-heading">
-            <h3 class="panel-title">
-              Platforms
-            </h3>
+            <h3 class="panel-title">Platforms</h3>
             <button
               class="btn btn-success"
               aria-label="Add platform"
@@ -416,18 +408,16 @@
 
         <div v-if="editVersion && permissions.includes('edit_admin_settings')" class="panel panel-default">
           <div class="panel-heading">
-            <h3 clasS="panel-title">
-              Discourse settings
-            </h3>
+            <h3 clasS="panel-title">Discourse settings</h3>
           </div>
           <ul class="list-group">
-            <li class="list-group-item" style="padding-bottom: 20px;">
+            <li class="list-group-item" style="padding-bottom: 20px">
               <div class="form-inline">
                 <label for="setPostId">Post id</label>
                 <input id="setPostId" v-model="discoursePostId" type="number" class="form-control pull-right" />
               </div>
             </li>
-            <li class="list-group-item" style="padding-bottom: 20px;">
+            <li class="list-group-item" style="padding-bottom: 20px">
               <div class="form-inline">
                 <label for="updatePost">Update post</label>
                 <input id="updatePost" v-model="discourseSendUpdate" type="checkbox" class="form-control pull-right" />

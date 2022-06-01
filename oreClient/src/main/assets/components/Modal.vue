@@ -6,7 +6,7 @@
           <button type="button" class="close" data-dismiss="modal" aria-label="Cancel" @click="onClose">
             <span aria-hidden="true">&times;</span>
           </button>
-          <h4 :id="'label-' + name" class="modal-title" style="color: black;">
+          <h4 :id="'label-' + name" class="modal-title" style="color: black">
             {{ title }}
           </h4>
         </div>
@@ -15,9 +15,7 @@
         </div>
         <div class="modal-footer">
           <div v-if="onSubmit" class="form-inline">
-            <button type="button" class="btn btn-default" data-dismiss="modal" @click="onClose">
-              Close
-            </button>
+            <button type="button" class="btn btn-default" data-dismiss="modal" @click="onClose">Close</button>
             <button name="rename" class="btn btn-warning" @click="onSubmit">
               {{ buttonLabel }}
             </button>

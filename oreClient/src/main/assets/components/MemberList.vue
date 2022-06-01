@@ -6,9 +6,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="pull-left panel-title">
-          Members
-        </h3>
+        <h3 class="pull-left panel-title">Members</h3>
 
         <div v-if="permissions.includes('manage_subject_members')" class="pull-right">
           <router-link v-if="!editable && settingsRoute" v-slot="{ href, navigate }" :to="settingsRoute">
@@ -53,7 +51,7 @@
 
             <template v-if="editable && permissions.includes('manage_subject_members') && member.role.isAssignable">
               <a href="#" @click="removeUser(member.user)">
-                <FontAwesomeIcon style="padding-left: 5px;" :icon="['fas', 'trash']" />
+                <FontAwesomeIcon style="padding-left: 5px" :icon="['fas', 'trash']" />
               </a>
 
               <role-select
@@ -74,7 +72,7 @@
           <user-search
             :exclude="Object.values(updatedMembers).map((m) => m.user)"
             :exclude-organizations="excludeOrganizations"
-            style="width: 100%;"
+            style="width: 100%"
             @add-user="addNewMember"
           />
         </li>

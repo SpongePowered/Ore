@@ -7,7 +7,7 @@
       data-toggle="dropdown"
       aria-haspopup="true"
       aria-expanded="false"
-      style="color: black;"
+      style="color: black"
     >
       <FontAwesomeIcon :icon="['fas', spinIcon ? 'spinner' : 'eye']" :spin="spinIcon" />
       Visibility actions
@@ -20,7 +20,7 @@
           <FontAwesomeIcon
             v-if="currentVisibility === visibility.name"
             :icon="['fas', 'check']"
-            style="color: black;"
+            style="color: black"
             aria-hidden="true"
           />
         </a>
@@ -31,9 +31,7 @@
       <textarea v-model="comment" class="textarea-visibility-comment form-control" rows="3" />
 
       <template #footer>
-        <button class="btn btn-default" data-dismiss="modal" @click="resetData">
-          Close
-        </button>
+        <button class="btn btn-default" data-dismiss="modal" @click="resetData">Close</button>
         <button class="btn btn-visibility-comment-submit btn-primary" @click="sendVisibilityChange(selectedVisibility)">
           <FontAwesomeIcon :icon="['fas', 'pencil-alt']" />
           Submit

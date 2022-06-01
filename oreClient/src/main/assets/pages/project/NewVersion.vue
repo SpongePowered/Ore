@@ -10,26 +10,22 @@
           <div class="col-md-4"></div>
           <div class="col-md-4">
             <div v-if="!processing && versionPreview" class="mb-1 text-center">
-              {{ this.$refs.fileInput.files[0].name }}
+              {{ $refs.fileInput.files[0].name }}
             </div>
             <label class="btn btn-primary btn-block" :class="{ 'btn-lg': !processing && !versionPreview }">
               <input
                 ref="fileInput"
                 type="file"
-                style="display: none;"
+                style="display: none"
                 :disabled="processing"
                 accept=".jar, application/zip"
                 @change="processFileUpload"
               />
-              <span v-if="!processing && !versionPreview">
-                Select file
-              </span>
+              <span v-if="!processing && !versionPreview"> Select file </span>
               <span v-else-if="!versionPreview">
                 Processing <font-awesome-icon :icon="['fas', 'spinner']" spin />
               </span>
-              <span v-else>
-                Upload a different file
-              </span>
+              <span v-else> Upload a different file </span>
             </label>
           </div>
           <div class="col-md-4"></div>

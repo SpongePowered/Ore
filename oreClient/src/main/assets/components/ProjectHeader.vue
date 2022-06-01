@@ -2,7 +2,7 @@
   <div class="project-header-container">
     <div v-if="project && project.visibility !== 'public'" class="row">
       <div class="col-xs-12">
-        <div class="alert alert-danger" role="alert" style="margin: 0.2em 0 0 0;">
+        <div class="alert alert-danger" role="alert" style="margin: 0.2em 0 0 0">
           <span v-if="project.visibility === 'new'">
             This project is new, and will not be shown to others until a version has been uploaded. If a version is not
             uploaded over a longer time the project will be deleted.
@@ -18,9 +18,7 @@
             <!-- eslint-disable-next-line vue/no-v-html -->
             <span v-html="renderVisibilityChange('Unknown')" />
           </span>
-          <span v-else-if="project.visibility === 'needsApproval'">
-            You have sent the project for review
-          </span>
+          <span v-else-if="project.visibility === 'needsApproval'"> You have sent the project for review </span>
           <span v-else-if="project.visibility === 'softDelete'">
             <!-- eslint-disable-next-line vue/no-v-html -->
             Project deleted by {{ projectData.lastVisibilityChangeUser }} <span v-html="renderVisibilityChange('')" />
@@ -124,9 +122,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                       <span aria-hidden="true">&times;</span>
                     </button>
-                    <h4 id="label-flag" class="modal-title">
-                      Flag project
-                    </h4>
+                    <h4 id="label-flag" class="modal-title">Flag project</h4>
                   </div>
                   <form
                     id="flagForm"
@@ -179,9 +175,7 @@
                       <button type="button" class="btn btn-default" data-dismiss="modal" @click="clearFlag">
                         Close
                       </button>
-                      <button type="button" class="btn btn-primary" @click="sendFlag">
-                        Flag
-                      </button>
+                      <button type="button" class="btn btn-primary" @click="sendFlag">Flag</button>
                     </div>
                   </form>
                 </div>
@@ -337,7 +331,7 @@
 <script>
 import markdownIt from 'markdown-it'
 import markdownItAnchor from 'markdown-it-anchor'
-//import markdownItWikilinks from 'markdown-it-wikilinks' //TODO: Find/make an replacement
+// import markdownItWikilinks from 'markdown-it-wikilinks' //TODO: Find/make an replacement
 import markdownItTaskLists from 'markdown-it-task-lists'
 import { mapState } from 'vuex'
 import { API } from '../api'
@@ -350,7 +344,7 @@ const md = markdownIt({
   typographer: true,
 })
   .use(markdownItAnchor)
-  //.use(markdownItWikilinks({ relativeBaseURL: location.pathname + '/pages/', uriSuffix: '' }))
+  // .use(markdownItWikilinks({ relativeBaseURL: location.pathname + '/pages/', uriSuffix: '' }))
   .use(markdownItTaskLists)
 
 export default {
