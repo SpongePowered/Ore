@@ -15,11 +15,11 @@ class PageQueriesSpec extends DbSpec {
   implicit val config: OreConfig = ConfigSource.default.loadOrThrow[OreConfig]
 
   test("getPage") {
-    check(PageQueries.getPage("foo", "bar", "baz"))
+    check(PageQueries.getPage(5L, "baz"))
   }
 
   test("pageList") {
-    check(PageQueries.pageList("foo", "bar"))
+    check(PageQueries.pageList(5L))
   }
 
   test("patchPage") {

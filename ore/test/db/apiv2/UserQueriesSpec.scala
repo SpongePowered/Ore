@@ -39,10 +39,10 @@ class UserQueriesSpec extends DbSpec {
   }
 
   test("projectMembers") {
-    check(UserQueries.projectMembers("foo", "bar", 5, 5))
+    check(UserQueries.projectMembers(5L, 5, 5))
   }
 
   test("orgaMembers") {
-    check(UserQueries.orgaMembers("foo", 5, 5))
+    check(UserQueries.orgaMembers(5L, 5, 5))
   }
 }

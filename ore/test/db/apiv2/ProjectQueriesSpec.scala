@@ -40,8 +40,7 @@ class ProjectQueriesSpec extends DbSpec {
   test("updateProject") {
     check(
       ProjectQueries.updateProject(
-        "foo",
-        "bar",
+        5L,
         Projects.EditableProjectF[Option](
           Some("baz"),
           Projects.EditableProjectNamespaceF[Option](Some("bin")),

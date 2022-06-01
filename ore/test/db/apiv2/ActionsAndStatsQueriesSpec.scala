@@ -29,11 +29,11 @@ class ActionsAndStatsQueriesSpec extends DbSpec {
   }
 
   test("projectStats") {
-    check(ActionsAndStatsQueries.projectStats("Foo", "bar", LocalDate.now(), LocalDate.now().minusDays(3)))
+    check(ActionsAndStatsQueries.projectStats(5L, LocalDate.now(), LocalDate.now().minusDays(3)))
   }
 
   test("versionStats") {
-    check(ActionsAndStatsQueries.versionStats("Foo", "bar", "baz", LocalDate.now(), LocalDate.now().minusDays(3)))
+    check(ActionsAndStatsQueries.versionStats(5L, "baz", LocalDate.now(), LocalDate.now().minusDays(3)))
   }
 
 }
