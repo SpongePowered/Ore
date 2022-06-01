@@ -131,19 +131,6 @@ abstract class AbstractApiV2Controller(lifecycle: ApplicationLifecycle)(
     }
   }
 
-  def permissionsInApiScope(
-      projectOwner: Option[String],
-      projectSlug: Option[String],
-      organizationName: Option[String]
-  )(
-      implicit request: ApiRequest[_, _]
-  ): IO[Result, (APIScope[_ <: Scope], Permission)] =
-    for {
-      apiScope <- ZIO.fromEither(createApiScope(projectOwner, projectSlug, organizationName))
-      scope    <- apiScope.toRealScope.orElseFail(NotFound)
-      perms    <- request.permissionIn(scope)
-    } yield (apiScope, perms)
-
   def permApiAction[S <: Scope](perms: Permission): ActionFilter[ApiRequest[S, *]] =
     new ActionFilter[ApiRequest[S, *]] {
       override protected def executionContext: ExecutionContext = ec

@@ -48,13 +48,19 @@ class Permissions(
       organizationName: Option[String]
   )(
       check: (Seq[Permission], Permission) => Boolean
-  ): Action[AnyContent] =
-    CachingApiAction(Permission.None, APIScope.GlobalScope).asyncF { implicit request =>
-      permissionsInApiScope(projectOwner, projectSlug, organizationName).map {
-        case (scope, perms) =>
-          Ok(PermissionCheck(scope.tpe, check(checkPermissions.map(_.permission), perms)))
-      }
+  ): Action[AnyContent] = {
+    createApiScope(projectOwner, projectSlug, organizationName) match {
+      case Right(scope) =>
+        CachingApiAction(Permission.None, scope) { implicit request =>
+          Ok(PermissionCheck(scope.tpe, check(checkPermissions.map(_.permission), request.scopePermission)))
+        }
+      case Left(error) =>
+        //We still run auth and such
+        CachingApiAction(Permission.None, APIScope.GlobalScope) {
+          error
+        }
     }
+  }
 
   def hasAll(
       permissions: Seq[NamedPermission],
@@ -62,7 +68,8 @@ class Permissions(
       projectSlug: Option[String],
       organizationName: Option[String]
   ): Action[AnyContent] =
-    has(permissions, projectOwner, projectSlug, organizationName)((seq, perm) => seq.forall(perm.has(_)))
+    //equivalent to seq.forall(perm.has(_)), but should be faster
+    has(permissions, projectOwner, projectSlug, organizationName)((seq, perm) => Permission(seq: _*).has(perm))
 
   def hasAny(
       permissions: Seq[NamedPermission],
