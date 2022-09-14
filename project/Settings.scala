@@ -11,7 +11,7 @@ object Settings {
   val scalaVer = "2.13.6"
 
   val commonSettings = Seq(
-    version := "2.0.0-M2.8",
+    version := "2.0.0-M2.9",
     scalaVersion := scalaVer,
     scalacOptions ++= Seq(
       "-deprecation",
