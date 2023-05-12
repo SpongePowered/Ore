@@ -6,13 +6,18 @@ sorted according to different criteria.
 
 @import controllers.sugar.Requests.OreRequest
 @import ore.OreConfig
+@import ore.Sponsor
 @()(implicit messages: Messages, flash: Flash, request: OreRequest[_], config: OreConfig, assetsFinder: AssetsFinder)
 
 @randomSponsor = @{
-    val logos = config.sponge.sponsors
+    val sponsors = config.sponge.sponsors
 
-    val index = new Random().nextInt(logos.size)
-    logos(index)
+    val totalWeight = sponsors.map(_.weight).sum
+    var randomNumber = Random.nextInt(totalWeight)
+
+    sponsors.find { sponsor =>
+        randomNumber < sponsor.weight || { randomNumber -= sponsor.weight; false }
+    }.getOrElse(sponsors.last)
 }
 
 @scripts = {

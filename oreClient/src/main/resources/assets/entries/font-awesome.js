@@ -14,6 +14,8 @@ import {
     faSadTear, faCheckCircle as farCheckCircle, faClock
 } from '@fortawesome/free-regular-svg-icons'
 
+import { faDiscord } from '@fortawesome/free-brands-svg-icons'
+
 config.autoAddCss = false;
 
 library.add(fasStar, fasGem, faEye, faDownload, faServer, faComment, faWrench, faMoneyBillAlt, faPuzzlePiece, faGamepad,
@@ -23,6 +25,6 @@ library.add(fasStar, fasGem, faEye, faDownload, faServer, faComment, faWrench, f
     faCheck, faReply, faSave, faTimes, faPencilAlt, faArrowLeft, faCog, faPlayCircle, faEdit, faKey, faCalendar, faFile,
     faUpload, faPaperPlane, faPlusSquare, faSearch, farStar, faExternalLinkAlt, faMinusSquare, faBug, faFileArchive,
     faTerminal, faStopCircle, faClipboard, faWindowClose, faSadTear, faUnlockAlt, farGem, faLink, farCheckCircle, faClock,
-    faInfo, fasCheckCircle, faTimesCircle, faEyeSlash, faUserTag);
+    faInfo, fasCheckCircle, faTimesCircle, faEyeSlash, faUserTag, faDiscord);
 
 dom.watch();
