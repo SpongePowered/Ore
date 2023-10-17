@@ -38,7 +38,7 @@ object UserActionLogger {
   }
 
   def logApi[F[_], Ctx, M: ModelQuery](
-      request: ApiRequest[_],
+      request: ApiRequest[_, _],
       action: LoggedActionType[Ctx],
       ctxId: DbRef[Ctx],
       newState: String,
@@ -47,7 +47,7 @@ object UserActionLogger {
     logApiOption(request, action, Some(ctxId), newState, oldState)(createAction)
 
   def logApiOption[F[_], Ctx, M: ModelQuery](
-      request: ApiRequest[_],
+      request: ApiRequest[_, _],
       action: LoggedActionType[Ctx],
       ctxId: Option[DbRef[Ctx]],
       newState: String,

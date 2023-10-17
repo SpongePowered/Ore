@@ -18,8 +18,7 @@ class VersionQueriesSpec extends DbSpec {
   test("versionQuery") {
     check(
       VersionQueries.versionQuery(
-        "foo",
-        "bar",
+        5L,
         Some("baz"),
         List(("bar", Some("baz")), ("bin", None)),
         List(Version.Stability.Stable),
@@ -35,8 +34,7 @@ class VersionQueriesSpec extends DbSpec {
   test("updateProject") {
     check(
       VersionQueries.updateVersion(
-        "foo",
-        "bar",
+        5L,
         "baz",
         Versions.DbEditableVersionF[Option](
           Some(Version.Stability.Stable),

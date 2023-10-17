@@ -180,14 +180,16 @@ class Projects(
                 )
               )
             )
-          )
+          ).withHeaders("Location" -> routes.Projects.showProject(project.ownerName, project.slug).absoluteURL())
         }
     }
 
   //We need to let this one pass through to the redirect if it fails. Need a bit extra code to do that
   def showProject(projectOwner: String, projectSlug: String): Action[AnyContent] =
     CachingApiAction(Permission.None, APIScope.GlobalScope).asyncF { implicit request =>
-      apiScopeToRealScope(APIScope.ProjectScope(projectOwner, projectSlug))
+      APIScope
+        .ProjectScope(projectOwner, projectSlug)
+        .toRealScope
         .mapError[Either[Unit, Unit]](_ => Right(()))
         .flatMap(request.permissionIn(_))
         .filterOrFail(_.has(Permission.ViewPublicInfo))(Left(()))
@@ -210,9 +212,9 @@ class Projects(
     }
 
   def showProjectDescription(projectOwner: String, projectSlug: String): Action[AnyContent] =
-    CachingApiAction(Permission.ViewPublicInfo, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF {
-      service.runDbCon(PageQueries.getPage(projectOwner, projectSlug, "Home").option).get.orElseFail(NotFound).map {
-        case (_, _, _, contents) =>
+    CachingApiAction(Permission.ViewPublicInfo, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF { request =>
+      service.runDbCon(PageQueries.getPage(request.scope.id, "Home").option).get.orElseFail(NotFound).map {
+        case (_, _, contents) =>
           Ok(Json.obj("description" := contents))
       }
     }
@@ -239,19 +241,15 @@ class Projects(
               else ZIO.fail(Forbidden(ApiError(s"Not enough perms to $action")))
 
             val renameOp = edits.name.fold(ZIO.unit: ZIO[Any, Result, Unit]) { newName =>
-              val doRename = projects
-                .withSlug(projectOwner, projectSlug)
-                .get
-                .orDieWith(_ => new Exception("impossible"))
-                .flatMap(projects.rename(_, newName).absolve)
-                .mapError(e => BadRequest(ApiError(e)))
+              val doRename =
+                request.project.flatMap(projects.rename(_, newName).absolve.mapError(e => BadRequest(ApiError(e))))
 
               checkIsOwner("rename project") *> doRename
             }
 
             val transferOp = edits.namespace.owner.fold(ZIO.unit: ZIO[Any, Result, Unit]) { newOwner =>
               val doTransfer = for {
-                project <- projects.withSlug(projectOwner, projectSlug).someOrFail(NotFound)
+                project <- request.project
                 user    <- users.withName(newOwner)(OreMDC.NoMDC).value.someOrFail(NotFound)
                 userRole <- project
                   .memberships[Task, ProjectUserRole, ProjectRoleTable]
@@ -271,8 +269,7 @@ class Projects(
             val newOwner = edits.namespace.owner.getOrElse(projectOwner)
             val newSlug  = edits.name.fold(projectSlug)(StringUtils.slugify)
 
-            //We need to be careful and use the new name and slug if they were changed
-            val update = service.runDbCon(ProjectQueries.updateProject(newOwner, newSlug, withoutNameAndOwner).run)
+            val update = service.runDbCon(ProjectQueries.updateProject(request.scope.id, withoutNameAndOwner).run)
 
             //We need two queries two queries as we use the generic update function
             val get = service
@@ -308,16 +305,16 @@ class Projects(
       offset: Long
   ): Action[AnyContent] =
     CachingApiAction(Permission.ViewPublicInfo, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF { implicit r =>
-      Members.membersAction(UserQueries.projectMembers(projectOwner, projectSlug, _, _), limit, offset)
+      Members.membersAction(UserQueries.projectMembers(r.scope.id, _, _), limit, offset)
     }
 
   def updateProjectMembers(projectOwner: String, projectSlug: String): Action[List[Members.MemberUpdate]] =
     ApiAction(Permission.ManageProjectMembers, APIScope.ProjectScope(projectOwner, projectSlug))
       .asyncF(parseCirce.decodeJson[List[Members.MemberUpdate]]) { implicit r =>
         Members.updateMembers[Project, ProjectUserRole, ProjectRoleTable](
-          getSubject = projects.withSlug(projectOwner, projectSlug).someOrFail(NotFound),
+          getSubject = r.project,
           allowOrgMembers = true,
-          getMembersQuery = UserQueries.projectMembers(projectOwner, projectSlug, _, _),
+          getMembersQuery = UserQueries.projectMembers(r.scope.id, _, _),
           createRole = ProjectUserRole(_, _, _),
           roleCompanion = ProjectUserRole,
           notificationType = NotificationType.ProjectInvite,
@@ -331,7 +328,7 @@ class Projects(
       fromDateString: String,
       toDateString: String
   ): Action[AnyContent] =
-    CachingApiAction(Permission.IsProjectMember, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF {
+    CachingApiAction(Permission.IsProjectMember, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF { request =>
       import Ordering.Implicits._
 
       def parseDate(dateStr: String) =
@@ -347,7 +344,7 @@ class Projects(
         _ <- ZIO.unit.filterOrFail(_ => fromDate < toDate)(BadRequest(ApiError("From date is after to date")))
         res <- service.runDbCon(
           ActionsAndStatsQueries
-            .projectStats(projectOwner, projectSlug, fromDate, toDate)
+            .projectStats(request.scope.id, fromDate, toDate)
             .to[Vector]
             .map(APIV2ProjectStatsQuery.asProtocol)
         )
@@ -357,7 +354,7 @@ class Projects(
   def setProjectVisibility(projectOwner: String, projectSlug: String): Action[EditVisibility] =
     ApiAction(Permission.None, APIScope.ProjectScope(projectOwner, projectSlug))
       .asyncF(parseCirce.decodeJson[EditVisibility]) { implicit request =>
-        projects.withSlug(projectOwner, projectSlug).someOrFail(NotFound).flatMap { project =>
+        request.project.flatMap { project =>
           request.body.process(
             project,
             request.user.get.id,
@@ -382,7 +379,7 @@ class Projects(
   def projectData(projectOwner: String, projectSlug: String): Action[AnyContent] =
     ApiAction(Permission.ViewPublicInfo, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF { implicit r =>
       for {
-        project <- projects.withSlug(projectOwner, projectSlug).get.orElseFail(NotFound)
+        project <- r.project
         data    <- ProjectData.of[ZIO[Blocking, Throwable, *]](project).orDie
       } yield Ok(
         Json.obj(
@@ -398,7 +395,7 @@ class Projects(
       )
     }
 
-  private def doHardDeleteProject(project: Model[Project])(implicit request: ApiRequest[_]): UIO[Unit] = {
+  private def doHardDeleteProject(project: Model[Project])(implicit request: ApiRequest[_, _]): UIO[Unit] = {
     projects.delete(project).unit <* UserActionLogger.logApiOption(
       request,
       LoggedActionType.ProjectVisibilityChange,
@@ -410,11 +407,7 @@ class Projects(
 
   def hardDeleteProject(projectOwner: String, projectSlug: String): Action[AnyContent] =
     ApiAction(Permission.HardDeleteProject, APIScope.ProjectScope(projectOwner, projectSlug)).asyncF { implicit r =>
-      projects
-        .withSlug(projectOwner, projectSlug)
-        .someOrFail(NotFound)
-        .flatMap(doHardDeleteProject(_))
-        .as(NoContent)
+      r.project.flatMap(doHardDeleteProject(_)).as(NoContent)
     }
 
   def editProjectDiscourseSettings(
@@ -423,15 +416,12 @@ class Projects(
   ): Action[Projects.DiscourseModifyTopicSettings] =
     ApiAction(Permission.EditAdminSettings, APIScope.ProjectScope(projectOwner, projectSlug))
       .asyncF(parseCirce.decodeJson[Projects.DiscourseModifyTopicSettings]) { implicit request =>
-        projects
-          .withSlug(projectOwner, projectSlug)
-          .someOrFail(NotFound)
-          .flatMap { project =>
-            val update = service.update(project)(_.copy(topicId = request.body.topicId, postId = request.body.postId))
-            val addJob = service.insert(Job.UpdateDiscourseProjectTopic.newJob(project.id).toJob)
+        request.project.flatMap { project =>
+          val update = service.update(project)(_.copy(topicId = request.body.topicId, postId = request.body.postId))
+          val addJob = service.insert(Job.UpdateDiscourseProjectTopic.newJob(project.id).toJob)
 
-            update.as(NoContent) <* addJob.when(request.body.updateTopic)
-          }
+          update.as(NoContent) <* addJob.when(request.body.updateTopic)
+        }
       }
 
   def redirectPluginId(pluginId: String, path: String): Action[AnyContent] = Action.asyncF { implicit request =>
@@ -453,7 +443,8 @@ class Projects(
           println(s"/api/v2/projects/$urlOwner/$urlSlug/$path")
           Redirect(
             s"/api/v2/projects/$urlOwner/$urlSlug/$path",
-            request.queryString ++ Map("ore-dont-pluginid-redirect" -> Seq("true"))
+            request.queryString ++ Map("ore-dont-pluginid-redirect" -> Seq("true")),
+            status = TEMPORARY_REDIRECT
           )
         }
         .orElseFail(NotFound)

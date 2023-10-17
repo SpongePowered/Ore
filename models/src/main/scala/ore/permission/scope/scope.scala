@@ -5,12 +5,7 @@ import ore.models.organization.Organization
 import ore.models.project.Project
 
 sealed trait Scope
-object Scope extends LowPriorityScope {
-  implicit val globalScopeHasScope: HasScope[GlobalScope.type]        = (a: GlobalScope.type) => a
-  implicit val projectScopeHasScope: HasScope[ProjectScope]           = (a: ProjectScope) => a
-  implicit val organizationScopeHasScope: HasScope[OrganizationScope] = (a: OrganizationScope) => a
-}
-trait LowPriorityScope {
+object Scope {
   implicit val scopeHasScope: HasScope[Scope] = (a: Scope) => a
 }
 

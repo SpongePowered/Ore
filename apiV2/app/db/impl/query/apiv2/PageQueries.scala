@@ -14,50 +14,46 @@ import doobie.implicits.javatime.JavaTimeLocalDateMeta
 object PageQueries extends APIV2Queries {
 
   def getPage(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       page: String
-  ): Query0[(DbRef[Project], DbRef[Page], String, Option[String])] =
-    sql"""|WITH RECURSIVE pages_rec(n, name, slug, contents, id, project_id) AS (
-          |    SELECT 2, pp.name, pp.slug, pp.contents, pp.id, pp.project_id
+  ): Query0[(DbRef[Page], String, Option[String])] =
+    sql"""|WITH RECURSIVE pages_rec(n, name, slug, contents, id) AS (
+          |    SELECT 2, pp.name, pp.slug, pp.contents, pp.id
           |        FROM project_pages pp
-          |                 JOIN projects p ON pp.project_id = p.id
-          |        WHERE p.owner_name = $projectOwner AND lower(p.slug) = lower($projectSlug)
+          |        WHERE pp.project_id = $projectId
           |          AND lower(split_part($page, '/', 1)) = lower(pp.slug)
           |          AND pp.parent_id IS NULL
           |    UNION
-          |    SELECT pr.n + 1, pp.name, pp.slug, pp.contents, pp.id, pp.project_id
+          |    SELECT pr.n + 1, pp.name, pp.slug, pp.contents, pp.id
           |        FROM pages_rec pr,
           |             project_pages pp
-          |        WHERE pp.project_id = pr.project_id
+          |        WHERE pp.project_id = $projectId
           |          AND pp.parent_id = pr.id
           |          AND lower(split_part($page, '/', pr.n)) = lower(pp.slug)
           |)
-          |SELECT pp.project_id, pp.id, pp.name, pp.contents
+          |SELECT pp.id, pp.name, pp.contents
           |    FROM pages_rec pp
           |    WHERE lower(pp.slug) = lower(split_part($page, '/', array_length(regexp_split_to_array($page, '/'), 1)));""".stripMargin
-      .query[(DbRef[Project], DbRef[Page], String, Option[String])]
+      .query[(DbRef[Page], String, Option[String])]
 
   def pageList(
-      projectOwner: String,
-      projectSlug: String
-  ): Query0[(DbRef[Project], DbRef[Page], List[String], List[String], Boolean)] =
-    sql"""|WITH RECURSIVE pages_rec(name, slug, id, project_id, navigational) AS (
-          |    SELECT ARRAY[pp.name]::TEXT[], ARRAY[pp.slug]::TEXT[], pp.id, pp.project_id, pp.contents IS NULL
+      projectId: DbRef[Project]
+  ): Query0[(DbRef[Page], List[String], List[String], Boolean)] =
+    sql"""|WITH RECURSIVE pages_rec(name, slug, id, navigational) AS (
+          |    SELECT ARRAY[pp.name]::TEXT[], ARRAY[pp.slug]::TEXT[], pp.id, pp.contents IS NULL
           |        FROM project_pages pp
-          |                 JOIN projects p ON pp.project_id = p.id
-          |        WHERE p.owner_name = $projectOwner AND lower(p.slug) = lower($projectSlug)
+          |        WHERE pp.project_id = $projectId
           |          AND pp.parent_id IS NULL
           |    UNION
-          |    SELECT array_append(pr.name, pp.name::TEXT), array_append(pr.slug, pp.slug::TEXT), pp.id, pp.project_id, pp.contents IS NULL
+          |    SELECT array_append(pr.name, pp.name::TEXT), array_append(pr.slug, pp.slug::TEXT), pp.id, pp.contents IS NULL
           |        FROM pages_rec pr,
           |             project_pages pp
-          |        WHERE pp.project_id = pr.project_id
+          |        WHERE pp.project_id = $projectId
           |          AND pp.parent_id = pr.id
           |)
-          |SELECT pp.project_id, pp.id, pp.name, pp.slug, navigational
+          |SELECT pp.id, pp.name, pp.slug, navigational
           |    FROM pages_rec pp ORDER BY pp.name;""".stripMargin
-      .query[(DbRef[Project], DbRef[Page], List[String], List[String], Boolean)]
+      .query[(DbRef[Page], List[String], List[String], Boolean)]
 
   def patchPage(
       patch: Pages.PatchPageF[Option],

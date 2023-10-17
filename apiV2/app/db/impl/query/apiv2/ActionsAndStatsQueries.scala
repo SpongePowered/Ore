@@ -5,7 +5,7 @@ import java.time.LocalDate
 import models.protocols.APIV2
 import models.querymodels.{APIV2ProjectStatsQuery, APIV2QueryCompactProject, APIV2VersionStatsQuery}
 import ore.db.DbRef
-import ore.models.project.ProjectSortingStrategy
+import ore.models.project.{Project, ProjectSortingStrategy}
 import ore.models.user.User
 
 import doobie._
@@ -117,8 +117,7 @@ object ActionsAndStatsQueries extends APIV2Queries {
   ): Query0[Long] = actionCountQuery(Fragment.const("project_watchers"), user, canSeeHidden, currentUserId)
 
   def projectStats(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       startDate: LocalDate,
       endDate: LocalDate
   ): Query0[APIV2ProjectStatsQuery] =
@@ -127,13 +126,12 @@ object ActionsAndStatsQueries extends APIV2Queries {
           |         (SELECT generate_series($startDate::DATE, $endDate::DATE, INTERVAL '1 DAY') AS day) dates
           |             LEFT JOIN project_versions_downloads pvd ON dates.day = pvd.day
           |             LEFT JOIN project_views pv ON dates.day = pv.day AND pvd.project_id = pv.project_id
-          |    WHERE p.owner_name = $projectOwner AND lower(p.slug) = lower($projectSlug)
+          |    WHERE p.id = $projectId
           |      AND (pvd IS NULL OR pvd.project_id = p.id)
           |    GROUP BY pv.views, dates.day;""".stripMargin.query[APIV2ProjectStatsQuery]
 
   def versionStats(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       versionString: String,
       startDate: LocalDate,
       endDate: LocalDate
@@ -143,7 +141,7 @@ object ActionsAndStatsQueries extends APIV2Queries {
           |         project_versions pv,
           |         (SELECT generate_series($startDate::DATE, $endDate::DATE, INTERVAL '1 DAY') AS day) dates
           |             LEFT JOIN project_versions_downloads pvd ON dates.day = pvd.day
-          |    WHERE p.owner_name = $projectOwner AND lower(p.slug) = lower($projectSlug)
+          |    WHERE p.id = $projectId
           |      AND pv.version_string = $versionString
           |      AND (pvd IS NULL OR (pvd.project_id = p.id AND pvd.version_id = pv.id));""".stripMargin
       .query[APIV2VersionStatsQuery]

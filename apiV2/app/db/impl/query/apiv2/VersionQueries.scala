@@ -5,7 +5,7 @@ import models.protocols.APIV2
 import models.querymodels.APIV2QueryVersion
 import ore.{OreConfig, OrePlatform}
 import ore.db.DbRef
-import ore.models.project.Version
+import ore.models.project.{Project, Version}
 import ore.models.user.User
 
 import cats.data.NonEmptyList
@@ -19,8 +19,7 @@ import doobie.implicits.javatime.JavaTimeLocalDateMeta
 object VersionQueries extends APIV2Queries {
 
   def versionSelectFrag(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       versionName: Option[String],
       platforms: List[(String, Option[String])],
       stability: List[Version.Stability],
@@ -62,7 +61,7 @@ object VersionQueries extends APIV2Queries {
     }
 
     val filters = Fragments.whereAndOpt(
-      Some(fr"p.owner_name = $projectOwner AND lower(p.slug) = lower($projectSlug)"),
+      Some(fr"p.id = $projectId"),
       versionName.map(v => fr"pv.version_string = $v"),
       Option.when(coarsePlatforms.nonEmpty)(
         Fragments.or(
@@ -81,8 +80,7 @@ object VersionQueries extends APIV2Queries {
   }
 
   def versionQuery(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       versionName: Option[String],
       platforms: List[(String, Option[String])],
       stability: List[Version.Stability],
@@ -93,8 +91,7 @@ object VersionQueries extends APIV2Queries {
       offset: Long
   )(implicit config: OreConfig): Query0[APIV2.Version] =
     (versionSelectFrag(
-      projectOwner,
-      projectSlug,
+      projectId,
       versionName,
       platforms,
       stability,
@@ -106,17 +103,15 @@ object VersionQueries extends APIV2Queries {
       .map(_.asProtocol)
 
   def singleVersionQuery(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       versionName: String,
       canSeeHidden: Boolean,
       currentUserId: Option[DbRef[User]]
   )(implicit config: OreConfig): doobie.Query0[APIV2.Version] =
-    versionQuery(projectOwner, projectSlug, Some(versionName), Nil, Nil, Nil, canSeeHidden, currentUserId, 1, 0)
+    versionQuery(projectId, Some(versionName), Nil, Nil, Nil, canSeeHidden, currentUserId, 1, 0)
 
   def versionCountQuery(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       platforms: List[(String, Option[String])],
       stability: List[Version.Stability],
       releaseType: List[Version.ReleaseType],
@@ -124,12 +119,11 @@ object VersionQueries extends APIV2Queries {
       currentUserId: Option[DbRef[User]]
   )(implicit config: OreConfig): Query0[Long] =
     countOfSelect(
-      versionSelectFrag(projectOwner, projectSlug, None, platforms, stability, releaseType, canSeeHidden, currentUserId)
+      versionSelectFrag(projectId, None, platforms, stability, releaseType, canSeeHidden, currentUserId)
     )
 
   def updateVersion(
-      projectOwner: String,
-      projectSlug: String,
+      projectId: DbRef[Project],
       versionName: String,
       edits: Versions.DbEditableVersion
   ): Update0 = {
@@ -138,6 +132,6 @@ object VersionQueries extends APIV2Queries {
       Column.opt("release_type")
     )
 
-    (updateTable("project_versions", versionColumns, edits) ++ fr" FROM projects p WHERE project_id = p.id AND p.owner_name = $projectOwner AND lower(p.slug) = lower($projectSlug) AND version_string = $versionName").update
+    (updateTable("project_versions", versionColumns, edits) ++ fr" WHERE project_id = $projectId AND version_string = $versionName").update
   }
 }
