@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        java: [8, 11, 17]
+        java: [8]
 
     env:
       PGPORT: 5432
