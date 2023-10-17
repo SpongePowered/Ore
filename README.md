@@ -34,6 +34,8 @@ In a typical development environment, most of the defaults are fine. Here are a 
 For `ore`:
 * You can disable authentication by setting `application.fakeUser` to `true`.
 
+You also need to create a copy of `oreClient/src/main/resources/assets/config.json5.template` named `config.json5`. Try to mirror the values you used in the `application.conf` file here.
+
 ## Running
 
 Running Ore is relatively simple.
@@ -61,3 +63,39 @@ For `jobs`:
 more stack size to sbt in the way you're starting sbt. `-Xss4m` should be enough. If you're using IntelliJ, you can set 
 this in the VM arguments field. If you're invoking sbt directly, the most common ways to set this is either through 
 the `SBT_OPTS` environment variable, or with a file named `.jvmopts` with each flag on a new line.
+
+### Running with Webpack dev server
+Play can be a bit slow to reload the application sometimes. Therefor it can be nice to instead use webpack's hot module 
+replacement. To do so, there are a few extra steps you need to go through.
+
+1. Comment out the line with `webpackMonitoredDirectories` in `build.sbt` (not needed, just for sanity with reloading)
+2. Add this to your `application.conf` under the filters section
+```
+cors {
+    allowedOrigins = ["http://localhost:8080"]
+}
+```
+3. If you want to see a logged in view, set `alwaysTryLogin` to `true` in `config.json5`
+4. Start Ore like normal
+5. Use `yarn run start` to start the webpack dev server
+6. Navigate to `http://localhost:8080`
+
+#### Disable webpack monitoring
+By default, Ore will monitor the frontend for changes and rebuilt it whenever it sees any. If you're running Ore with 
+the webpack server, this can be more of a hinderance. If you wish to disable it, add this to a new file 
+called `user.sbt` in the root folder.
+```scala
+lazy val setNoMonitoredFiles: State => State = { s: State =>
+  val projectID = "oreClient"
+  val value = Nil
+  if (Project.extract(s).get(LocalProject(projectID) / Assets / webpackMonitoredDirectories) == value)
+    s
+  else
+    s"""set (LocalProject("$projectID") / Assets / webpackMonitoredDirectories) := $value""" :: s
+}
+
+Global / onLoad := {
+  val old = (Global / onLoad).value
+  setNoMonitoredFiles compose old
+}
+```

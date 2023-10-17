@@ -9,13 +9,14 @@ jobs:
 
     strategy:
       matrix:
-        java: [1.8, 1.11]
+        java: [8, 11, 17]
 
     env:
       PGPORT: 5432
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       DB_DATABASE: postgres
+      client-dir: ./oreClient
 
     services:
       postgres:
@@ -31,38 +32,21 @@ jobs:
           - 5432:5432
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set up NodeJS
         uses: actions/setup-node@v3
         with:
           node-version: 16.16.0
+          cache: 'yarn'
+          cache-dependency-path: ${{env.client-dir}}/yarn.lock
 
       - name: Set up JDK
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
+          distribution: temurin
           java-version: ${{ matrix.java }}
-
-      - name: Cache sbt Ivy cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.ivy2/cache
-          key: ${{ runner.os }}-sbt-ivy-cache-${{ hashFiles('**.sbt', 'project/**/*.scala') }}
-          restore-keys: ${{ runner.os }}-sbt-ivy-cache
-
-      - name: Cache sbt Coursier cache
-        uses: actions/cache@v1
-        with:
-          path: ~/.cache/coursier
-          key: ${{ runner.os }}-sbt-coursier-cache-${{ hashFiles('**.sbt', 'project/**/*.scala') }}
-          restore-keys: ${{ runner.os }}-sbt-coursier-cache
-
-      - name: Cache sbt
-        uses: actions/cache@v1
-        with:
-          path: ~/.sbt
-          key: ${{ runner.os }}-sbt-${{ hashFiles('**.sbt', 'project/**/*.scala', 'project/build.properties') }}
-          restore-keys: ${{ runner.os }}-sbt
+          cache: sbt
 
       - name: Initialize postgres extensions
         env:
@@ -75,6 +59,36 @@ jobs:
         run: |
           cp ore/conf/application.conf.template ore/conf/application.conf
           cp jobs/src/main/resources/application.conf.template jobs/src/main/resources/application.conf
+          cp oreClient/src/main/assets/config.json5.template oreClient/src/main/assets/config.json5
 
       - name: Run compile
         run: sbt "oreAll/compile;ore/test;ore/assets"
+
+  lintClient:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node: [14, 16]
+
+    env:
+      client-dir: ./oreClient
+
+    name: Client Linting (Node ${{ matrix.node }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'yarn'
+          cache-dependency-path: ${{env.client-dir}}/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: ${{env.client-dir}}
+
+      - name: Run linting
+        run: yarn run lint
+        working-directory: ${{env.client-dir}}

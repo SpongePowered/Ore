@@ -4,16 +4,7 @@ import ore.db.DbRef
 import ore.db.impl.OrePostgresDriver.api._
 import ore.models.organization.Organization
 import ore.models.project.{Page, Project, Version}
-import ore.models.user.{
-  LoggedActionCommon,
-  LoggedActionOrganization,
-  LoggedActionPage,
-  LoggedActionProject,
-  LoggedActionType,
-  LoggedActionUser,
-  LoggedActionVersion,
-  User
-}
+import ore.models.user._
 
 import com.github.tminglei.slickpg.InetString
 

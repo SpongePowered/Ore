@@ -8,21 +8,20 @@ import play.api.mvc._
 import db.impl.access.UserBase.UserOrdering
 import db.impl.query.UserPagesQueries
 import form.OreForms
-import mail.{EmailFactory, Mailer}
 import models.viewhelper.{OrganizationData, ScopedOrganizationData, UserData}
 import ore.auth.URLWithNonce
 import ore.data.Prompt
 import ore.db.access.ModelView
 import ore.db.impl.OrePostgresDriver.api._
 import ore.db.impl.query.UserQueries
-import ore.db.impl.schema.{ApiKeyTable, PageTable, ProjectTable, UserTable, VersionTable}
+import ore.db.impl.schema._
 import ore.db.{DbRef, Model}
 import ore.models.user.notification.{InviteFilter, NotificationFilter}
 import ore.models.user.{FakeUser, _}
 import ore.permission.Permission
 import ore.permission.role.Role
-import util.{Sitemap, UserActionLogger}
 import util.syntax._
+import util.{Sitemap, UserActionLogger}
 import views.{html => views}
 
 import cats.syntax.all._
@@ -34,9 +33,7 @@ import zio.{IO, Task, UIO, ZIO}
   */
 class Users(
     fakeUser: FakeUser,
-    forms: OreForms,
-    mailer: Mailer,
-    emails: EmailFactory
+    forms: OreForms
 )(
     implicit oreComponents: OreControllerComponents,
     messagesApi: MessagesApi
@@ -135,31 +132,7 @@ class Users(
     * @param username   Username to lookup
     * @return           View of user projects page
     */
-  def showProjects(username: String): Action[AnyContent] = OreAction.asyncF { implicit request =>
-    for {
-      u <- users
-        .withName(username)
-        .toZIOWithError(notFound)
-      // TODO include orga projects?
-      t1 <- (
-        getOrga(username).option,
-        UserData.of(request, u)
-      ).parTupled
-      (orga, userData) = t1
-      t2 <- (
-        OrganizationData.of[Task](orga).value.orDie,
-        ScopedOrganizationData.of(request.currentUser, orga).value
-      ).parTupled
-      (orgaData, scopedOrgaData) = t2
-    } yield {
-      Ok(
-        views.users.projects(
-          userData,
-          orgaData.flatMap(a => scopedOrgaData.map(b => (a, b)))
-        )
-      )
-    }
-  }
+  def showProjects(username: String): Action[AnyContent] = OreAction(implicit request => Ok(views.home()))
 
   /**
     * Submits a change to the specified user's tagline.
@@ -189,27 +162,6 @@ class Users(
         _ <- service.update(user)(_.copy(tagline = Some(tagline)))
       } yield Redirect(ShowUser(user))
     }
-
-  /**
-    * Sets the "locked" status of a User.
-    *
-    * @param username User to set status of
-    * @param locked   True if user is locked
-    * @return         Redirection to user page
-    */
-  def setLocked(username: String, locked: Boolean, sso: Option[String], sig: Option[String]): Action[AnyContent] = {
-    VerifiedAction(username, sso, sig).asyncF { implicit request =>
-      val user = request.user
-
-      if (!locked) {
-        this.mailer.push(this.emails.create(user, this.emails.AccountUnlocked))
-      }
-
-      service
-        .update(user)(_.copy(isLocked = locked))
-        .as(Redirect(ShowUser(username)))
-    }
-  }
 
   /**
     * Shows a list of [[ore.models.user.User]]s that have created a
@@ -389,18 +341,18 @@ class Users(
       }
       ((projects, versions), pages) = res
     } yield {
-      val projectEntries = for (project <- projects) yield Sitemap.Entry(projectRoutes.Projects.show(user, project))
+      val projectEntries = for (project <- projects) yield Sitemap.Entry(projectRoutes.Projects.show(user, project, ""))
 
       val versionEntries =
         for ((project, version) <- versions)
           yield Sitemap.Entry(
-            projectRoutes.Versions.show(user, project, version)
+            showVersion(user, project, version)
           )
 
       val pageEntries =
         for ((project, page) <- pages)
           yield Sitemap.Entry(
-            projectRoutes.Pages.show(user, project, page)
+            showPage(user, project, page)
           )
 
       Ok(

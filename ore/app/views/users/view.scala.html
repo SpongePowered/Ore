@@ -21,12 +21,6 @@
     <script type="text/javascript" src="@assetsFinder.path("javascripts/userPage.js")"></script>
     <script @CSPNonce.attr>
             window.USERNAME ='@u.user.name';
-            @for(category <- Category.values) {
-                CATEGORY_TITLE['@category.apiName'] = '@category.title';
-                CATEGORY_ICON['@category.apiName'] = '@category.icon';
-            }
-            NO_ACTION_MESSAGE.starred = '@messages("user.noStars", u.user.name)';
-            NO_ACTION_MESSAGE.watching = '@messages("user.noWatching", u.user.name)';
     </script>
     @additionalScripts
 }
@@ -71,11 +65,6 @@
                                 data-placement="top" title="Settings"></i>
                             </a>
 
-                            <span data-toggle="modal" data-target="#modal-lock">
-                                <i class="fas @{if (u.user.isLocked) "fa-lock" else "fa-unlock-alt"} action-lock-account" data-toggle="tooltip"
-                                data-placement="top" title="@messages("user.lock")"></i>
-                            </span>
-
                             <a class="action-api" href="@routes.Users.editApiKeys(u.user.name)">
                                 <i class="fas fa-key" data-toggle="tooltip" data-placement="top" title="API Keys"></i>
                             </a>
@@ -90,7 +79,7 @@
                             }
                         }
 
-                        @if(request.headerData.globalPerm(Permission.EditAllUserSettings)) {
+                        @if(request.headerData.globalPerm(Permission.EditAdminSettings)) {
                             <a class="user-settings" href="@routes.Application.userAdmin(u.user.name)">
                                 <i class="fas fa-wrench" data-toggle="tooltip"
                                 data-placement="top" title="User Admin"></i>
@@ -140,31 +129,6 @@
     </div>
 
     @content
-
-    @modal("modal-lock", "label-lock", if (u.user.isLocked) "user.unlock" else "user.lock") {
-        <div class="modal-body">
-            <p class="minor">
-                @if(u.user.isLocked) {
-                    @messages("user.unlock.confirm")
-                } else {
-                    @messages("user.lock.confirm")
-                }
-            </p>
-        </div>
-
-        <div class="modal-footer">
-            <button type="button" class="btn btn-default" data-dismiss="modal">@messages("general.close")</button>
-            @form(action = routes.Users.verify(Some(routes.Users.setLocked(
-                user = u.user.name,
-                locked = !u.user.isLocked,
-                sso = None,
-                sig = None
-            ).path())), Symbol("class") -> "form-inline") {
-                @CSRF.formField
-                <button type="submit" class="btn btn-primary">@messages("general.continue")</button>
-            }
-        </div>
-    }
 
     @modal("modal-tagline", "label-tagline", "user.tagline.edit") {
         @form(action = routes.Users.saveTagline(u.user.name)) {

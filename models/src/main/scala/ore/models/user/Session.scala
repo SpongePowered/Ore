@@ -2,10 +2,10 @@ package ore.models.user
 
 import java.time.OffsetDateTime
 
-import ore.db.{DbRef, ModelQuery}
 import ore.db.impl.DefaultModelCompanion
 import ore.db.impl.common.Expirable
 import ore.db.impl.schema.SessionTable
+import ore.db.{DbRef, ModelQuery}
 
 import slick.lifted.TableQuery
 

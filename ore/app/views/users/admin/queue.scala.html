@@ -1,3 +1,4 @@
+@import controllers.sugar.Calls
 @import controllers.sugar.Requests.OreRequest
 @import models.querymodels.{NotStartedQueueEntry, ReviewedQueueEntry}
 @import ore.OreConfig
@@ -8,9 +9,8 @@
 @import views.html.utils.userAvatar
 @(underReview: Seq[ReviewedQueueEntry], versions: Seq[NotStartedQueueEntry])(implicit messages: Messages, request: OreRequest[_], config: OreConfig, flash: Flash, assetsFinder: AssetsFinder)
 
-@versionRoutes = @{controllers.project.routes.Versions}
-
 @scripts = {
+    <script type="text/javascript" src="@assetsFinder.path("lib/moment/min/moment.min.js")"></script>
     <script @CSPNonce.attr type="text/javascript" src="@assetsFinder.path("javascripts/queue.js")"></script>
     <script @CSPNonce.attr>
             $(function(){
@@ -63,12 +63,11 @@
                         @underReview.map { entry =>
                         <tr @if(entry.isUnfinished && request.headerData.isCurrentUser(entry.reviewerId)){ class="warning" }>
                         <td>
-                            <a href="@versionRoutes.show(entry.namespace.ownerName, entry.namespace.slug, entry.versionString)">
+                            <a href="@Calls.showVersion(entry.namespace.ownerName, entry.namespace.slug, entry.versionString)">
                                 @entry.namespace
                             </a>
                             <br>
                             @entry.versionString
-                            <span class="channel" style="background-color: @entry.channelColor.hex">@entry.channelName</span>
                         </td>
                         <td>
                             @if(entry.versionAuthor.isDefined) {
@@ -150,14 +149,13 @@
                             @userAvatar(Some(entry.namespace.ownerName), User.avatarUrl(entry.namespace.ownerName), clazz = "user-avatar-xs")
                             </td>
                             <td>
-                                <a href="@versionRoutes.show(entry.namespace.ownerName, entry.namespace.slug, entry.versionString)">
+                                <a href="@Calls.showVersion(entry.namespace.ownerName, entry.namespace.slug, entry.versionString)">
                                     @entry.namespace
                                 </a>
                             </td>
                             <td>
                                 <span class="faint">@prettifyDate(entry.versionCreatedAt)</span>
                                 <span class="minor">@entry.versionString</span>
-                                <span class="channel" style="background-color: @entry.channelColor.hex;">@entry.channelName</span>
                             </td>
                             <td>
                                 @if(entry.versionAuthor.isDefined) {

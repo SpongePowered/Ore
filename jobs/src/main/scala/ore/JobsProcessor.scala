@@ -6,12 +6,12 @@ import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 import ore.db.access.ModelView
-import ore.db.impl.schema.{ProjectTable, VersionTable}
 import ore.db.impl.OrePostgresDriver.api._
+import ore.db.impl.schema.{ProjectTable, VersionTable}
 import ore.db.{Model, ObjId}
 import ore.discourse.DiscourseError
-import ore.models.{Job, JobInfo}
 import ore.models.project.{Project, Version}
+import ore.models.{Job, JobInfo}
 
 import akka.pattern.CircuitBreakerOpenException
 import com.typesafe.scalalogging

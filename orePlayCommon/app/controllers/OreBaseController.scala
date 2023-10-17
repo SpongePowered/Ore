@@ -11,7 +11,6 @@ import ore.db.Model
 import ore.db.access.ModelView
 import ore.db.impl.OrePostgresDriver.api._
 import ore.db.impl.schema.VersionTable
-import ore.models.organization.Organization
 import ore.models.project.{Project, Version, Visibility}
 import ore.permission.Permission
 import util.syntax._
@@ -86,10 +85,6 @@ abstract class OreBaseController(implicit val oreComponents: OreControllerCompon
   /** Ensures a request is authenticated */
   def Authenticated: ActionBuilder[AuthRequest, AnyContent] = Action.andThen(authAction)
 
-  /** Ensures a user's account is unlocked */
-  def UserLock(redirect: Call = ShowHome): ActionBuilder[AuthRequest, AnyContent] =
-    Authenticated.andThen(userLock(redirect))
-
   /**
     * Retrieves, processes, and adds a [[Project]] to a request.
     *
@@ -119,21 +114,9 @@ abstract class OreBaseController(implicit val oreComponents: OreControllerCompon
     */
   def AuthedProjectAction(
       author: String,
-      slug: String,
-      requireUnlock: Boolean = false
-  ): ActionBuilder[AuthedProjectRequest, AnyContent] = {
-    val first = if (requireUnlock) UserLock(ShowProject(author, slug)) else Authenticated
-    first.andThen(authedProjectAction(author, slug))
-  }
-
-  /**
-    * Retrieves an [[Organization]] and adds it to the request.
-    *
-    * @param organization Organization to retrieve
-    * @return             Request with organization if found, NotFound otherwise
-    */
-  def OrganizationAction(organization: String): ActionBuilder[Requests.OrganizationRequest, AnyContent] =
-    OreAction.andThen(organizationAction(organization))
+      slug: String
+  ): ActionBuilder[AuthedProjectRequest, AnyContent] =
+    Authenticated.andThen(authedProjectAction(author, slug))
 
   /**
     * Ensures a request is authenticated and retrieves and adds a
@@ -143,12 +126,9 @@ abstract class OreBaseController(implicit val oreComponents: OreControllerCompon
     * @return             Authenticated request with Organization if found, NotFound otherwise
     */
   def AuthedOrganizationAction(
-      organization: String,
-      requireUnlock: Boolean = false
-  ): ActionBuilder[Requests.AuthedOrganizationRequest, AnyContent] = {
-    val first = if (requireUnlock) UserLock(ShowUser(organization)) else Authenticated
-    first.andThen(authedOrganizationAction(organization))
-  }
+      organization: String
+  ): ActionBuilder[Requests.AuthedOrganizationRequest, AnyContent] =
+    Authenticated.andThen(authedOrganizationAction(organization))
 
   /**
     * A request that ensures that a user has permission to edit a specified
@@ -159,18 +139,4 @@ abstract class OreBaseController(implicit val oreComponents: OreControllerCompon
     */
   def UserEditAction(username: String): ActionBuilder[AuthRequest, AnyContent] =
     Authenticated.andThen(userEditAction(username))
-
-  /**
-    * Represents an action that requires a user to reenter their password.
-    *
-    * @param username Username to verify
-    * @param sso      Incoming SSO payload
-    * @param sig      Incoming SSO signature
-    * @return         None if verified, Unauthorized otherwise
-    */
-  def VerifiedAction(
-      username: String,
-      sso: Option[String],
-      sig: Option[String]
-  ): ActionBuilder[AuthRequest, AnyContent] = UserEditAction(username).andThen(verifiedAction(sso, sig))
 }

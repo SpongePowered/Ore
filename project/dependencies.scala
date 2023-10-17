@@ -17,6 +17,7 @@ object Version {
 
   val circe           = "0.13.0"
   val circeDerivation = "0.13.0-M5"
+  val circeYaml       = "0.13.1"
 
   val akka         = "2.6.15"
   val akkaHttp     = "10.1.15"
@@ -26,6 +27,8 @@ object Version {
   val macWire    = "2.3.7"
   val scalaCache = "0.28.0"
   val flexmark   = "0.62.2"
+
+  val perspective = "0.0.2"
 }
 
 object Deps {
@@ -35,6 +38,9 @@ object Deps {
   val catsTagless = "org.typelevel"        %% "cats-tagless-macros" % Version.catsTagless
   val shapeless   = "com.chuusai"          %% "shapeless"           % "2.3.7"
   val simulacrum  = "com.github.mpilquist" %% "simulacrum"          % Version.simulacrum
+
+  val perspectiveDerivation = "net.katsstuff" %% "perspective-derivation" % "0.0.4"
+  val perspectiveMacros     = "net.katsstuff" %% "perspective-macro"      % "0.0.4"
 
   val slick               = "com.typesafe.slick"  %% "slick"                 % Version.slick
   val slickHikariCp       = "com.typesafe.slick"  %% "slick-hikaricp"        % Version.slick
@@ -50,6 +56,9 @@ object Deps {
   val circe           = "io.circe" %% "circe-core"                   % Version.circe
   val circeDerivation = "io.circe" %% "circe-derivation-annotations" % Version.circeDerivation
   val circeParser     = "io.circe" %% "circe-parser"                 % Version.circe
+  val circeYaml       = "io.circe" %% "circe-yaml"                   % Version.circeYaml
+
+  val tomlScala = "tech.sparse" %% "toml-scala" % "0.2.2"
 
   val akkaHttp                 = "com.typesafe.akka" %% "akka-http"                  % Version.akkaHttp
   val akkaHttpCore             = "com.typesafe.akka" %% "akka-http-core"             % Version.akkaHttp
@@ -65,7 +74,7 @@ object Deps {
   val zio     = "dev.zio" %% "zio"              % Version.zio
   val zioCats = "dev.zio" %% "zio-interop-cats" % Version.zioCats
 
-  val pureConfig = "com.github.pureconfig" %% "pureconfig" % "0.14.1"
+  val pureConfig = "com.github.pureconfig" %% "pureconfig" % "0.17.4"
 
   val scalaCache           = "com.github.cb372" %% "scalacache-caffeine"    % Version.scalaCache
   val scalaCacheCatsEffect = "com.github.cb372" %% "scalacache-cats-effect" % Version.scalaCache
@@ -106,6 +115,7 @@ object Deps {
     //specs2 % Test,
     "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0"        % Test,
     "org.scalatestplus"      %% "junit-4-12"         % "3.2.2.0"      % Test,
-    "org.tpolecat"           %% "doobie-scalatest"   % Version.doobie % Test
+    "org.tpolecat"           %% "doobie-scalatest"   % Version.doobie % Test,
+    "com.github.pathikrit"   %% "better-files"       % "3.9.1"        % Test
   )
 }

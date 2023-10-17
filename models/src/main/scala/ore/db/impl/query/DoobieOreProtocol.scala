@@ -17,7 +17,7 @@ import ore.data.{Color, DownloadType, Prompt}
 import ore.db.{DbRef, Model, ObjId, ObjOffsetDateTime}
 import ore.models.Job
 import ore.models.api.ApiKey
-import ore.models.project.{ReviewState, TagColor, Visibility}
+import ore.models.project.{ReviewState, TagColor, Version, Visibility}
 import ore.models.user.{LoggedActionContext, LoggedActionType, User}
 import ore.permission.Permission
 import ore.permission.role.{Role, RoleCategory}
@@ -28,7 +28,6 @@ import com.typesafe.scalalogging
 import doobie._
 import doobie.`enum`.JdbcType.{Char, Date, LongVarChar, Time, Timestamp, TimestampWithTimezone, VarChar}
 import doobie.enum.JdbcType
-import doobie.implicits._
 import doobie.postgres.implicits._
 import doobie.util.meta.Meta
 import enumeratum.values._
@@ -191,6 +190,9 @@ trait DoobieOreProtocol {
   implicit val inetStringMeta: Meta[InetString] =
     Meta[InetAddress].timap(address => InetString(address.toString))(str => InetAddress.getByName(str.value))
 
+  implicit val stabilityMeta: Meta[Version.Stability]     = pgEnumEnumeratumMeta("STABILITY", Version.Stability)
+  implicit val releaseTypeMeta: Meta[Version.ReleaseType] = pgEnumEnumeratumMeta("RELEASE_TYPE", Version.ReleaseType)
+
   implicit val permissionMeta: Meta[Permission] =
     Meta.Advanced.one[Permission](
       JdbcType.Bit,
@@ -239,8 +241,8 @@ trait DoobieOreProtocol {
   implicit val userModelRead: Read[Model[User]] =
     Read[ObjId[User] :: ObjOffsetDateTime :: Option[String] :: String :: Option[String] :: Option[String] :: Option[
       OffsetDateTime
-    ] :: List[Prompt] :: Boolean :: Option[Locale] :: HNil].map {
-      case id :: createdAt :: fullName :: name :: email :: tagline :: joinDate :: readPrompts :: isLocked :: lang :: HNil =>
+    ] :: List[Prompt] :: Option[Locale] :: HNil].map {
+      case id :: createdAt :: fullName :: name :: email :: tagline :: joinDate :: readPrompts :: lang :: HNil =>
         Model(
           id,
           createdAt,
@@ -252,7 +254,6 @@ trait DoobieOreProtocol {
             tagline,
             joinDate,
             readPrompts,
-            isLocked,
             lang
           )
         )
@@ -261,12 +262,10 @@ trait DoobieOreProtocol {
   implicit val userModelOptRead: Read[Option[Model[User]]] =
     Read[Option[ObjId[User]] :: Option[ObjOffsetDateTime] :: Option[String] :: Option[String] :: Option[String] :: Option[
       String
-    ] :: Option[OffsetDateTime] :: Option[List[Prompt]] :: Option[Boolean] :: Option[
+    ] :: Option[OffsetDateTime] :: Option[List[Prompt]] :: Option[
       Locale
     ] :: HNil].map {
-      case Some(id) :: Some(createdAt) :: fullName :: Some(name) :: email :: tagline :: joinDate :: Some(readPrompts) :: Some(
-            isLocked
-          ) :: lang :: HNil =>
+      case Some(id) :: Some(createdAt) :: fullName :: Some(name) :: email :: tagline :: joinDate :: Some(readPrompts) :: lang :: HNil =>
         Some(
           Model(
             id,
@@ -279,7 +278,6 @@ trait DoobieOreProtocol {
               tagline,
               joinDate,
               readPrompts,
-              isLocked,
               lang
             )
           )

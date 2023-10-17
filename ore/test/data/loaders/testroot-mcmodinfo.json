@@ -1,0 +1,26 @@
+{
+  "config": "../../../conf/loaders/mcmodinfo.conf",
+  "commonName": "mcmodinfo",
+  "tests": [
+    {
+      "name": "basic",
+      "file": "mcmodinfo/basic.json",
+      "result": "mcmodinfo/basic_result.json"
+    },
+    {
+      "name": "versioned dependencies",
+      "file": "mcmodinfo/dependency_versions.json",
+      "result": "mcmodinfo/dependency_versions_result.json"
+    },
+    {
+      "name": "multiple mods",
+      "file": "mcmodinfo/multiple_mods.json",
+      "result": "mcmodinfo/multiple_mods_result.json"
+    },
+    {
+      "name": "duplicate dependency",
+      "file": "mcmodinfo/tablist102.json",
+      "result": "mcmodinfo/tablist102_result.json"
+    }
+  ]
+}

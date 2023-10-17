@@ -4,14 +4,11 @@ import ore.db.DbRef
 import ore.models.Job
 import ore.models.admin._
 import ore.models.api.ProjectApiKey
-import ore.models.organization.Organization
 import ore.models.project._
-import ore.models.statistic.{ProjectView, VersionDownload}
 import ore.models.user._
 import ore.models.user.role.{DbRole, OrganizationUserRole, ProjectUserRole}
 
 import doobie.implicits._
-import doobie.implicits.javasql._
 import doobie.postgres.implicits._
 import doobie.postgres.circe.jsonb.implicits._
 import org.junit.runner._
@@ -21,7 +18,7 @@ import org.scalatestplus.junit.JUnitRunner
 class SchemaSpec extends DbSpec {
 
   test("Project") {
-    check(sql"""|SELECT plugin_id, owner_name, owner_id, name, slug, recommended_version_id,
+    check(sql"""|SELECT plugin_id, owner_name, owner_id, name,
                 |category, description, topic_id, post_id, visibility,
                 |notes, keywords, homepage, issues, source, support, license_name, license_url, 
                 |forum_sync FROM projects""".stripMargin.query[Project])
@@ -40,21 +37,12 @@ class SchemaSpec extends DbSpec {
                 |is_deletable, contents FROM project_pages""".stripMargin.query[Page])
   }
 
-  test("Channel") {
-    check(sql"""|SELECT project_id, name, color,
-                |is_non_reviewed FROM project_channels""".stripMargin.query[Channel])
-  }
-
-  test("VersionTag") {
-    check(sql"""SELECT version_id, name, data, color FROM project_version_tags""".query[VersionTag])
-  }
-
   test("Version") {
     check(
-      sql"""|SELECT project_id, version_string, dependencies, channel_id, file_size, hash,
+      sql"""|SELECT project_id, version_string, dependency_ids, dependency_versions, file_size, hash,
             |author_id, description, review_state, reviewer_id, approved_at, visibility, file_name,
-            |create_forum_post, post_id FROM project_versions""".stripMargin
-        .query[Version]
+            |create_forum_post, post_id, uses_mixin, stability, release_type,
+            |legacy_channel_name, legacy_channel_color FROM project_versions""".stripMargin.query[Version]
     )
   }
 
@@ -93,10 +81,6 @@ class SchemaSpec extends DbSpec {
   }
    */
 
-  test("OrganizationMember") {
-    check(sql"""SELECT user_id, organization_id FROM organization_members""".query[(DbRef[User], DbRef[Organization])])
-  }
-
   test("OrganizationRole") {
     check(sql"""|SELECT user_id, organization_id, role_type,
                 |is_accepted FROM user_organization_roles""".stripMargin.query[OrganizationUserRole])
@@ -105,12 +89,6 @@ class SchemaSpec extends DbSpec {
   test("ProjectRole") {
     check(sql"""|SELECT user_id, project_id, role_type,
                 |is_accepted FROM user_project_roles""".stripMargin.query[ProjectUserRole])
-  }
-
-  test("ProjectMember") {
-    check(
-      sql"""SELECT project_id, user_id FROM project_members""".query[(DbRef[Project], DbRef[User])]
-    )
   }
 
   test("Notifiation") {

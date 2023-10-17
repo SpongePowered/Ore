@@ -2,7 +2,7 @@ package ore.db
 
 import scala.language.implicitConversions
 
-import java.time.{Instant, OffsetDateTime}
+import java.time.OffsetDateTime
 
 import slick.jdbc.JdbcProfile
 

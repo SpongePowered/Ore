@@ -37,10 +37,10 @@ object NamedPermission extends Enum[NamedPermission] {
   case object ViewStats  extends NamedPermission(Permission.ViewStats)
   case object ViewLogs   extends NamedPermission(Permission.ViewLogs)
 
-  case object ManualValueChanges  extends NamedPermission(Permission.ManualValueChanges)
-  case object HardDeleteProject   extends NamedPermission(Permission.HardDeleteProject)
-  case object HardDeleteVersion   extends NamedPermission(Permission.HardDeleteVersion)
-  case object EditAllUserSettings extends NamedPermission(Permission.EditAllUserSettings)
+  case object ManualValueChanges extends NamedPermission(Permission.ManualValueChanges)
+  case object HardDeleteProject  extends NamedPermission(Permission.HardDeleteProject)
+  case object HardDeleteVersion  extends NamedPermission(Permission.HardDeleteVersion)
+  case object EditAdminSettings  extends NamedPermission(Permission.EditAdminSettings)
 
   override def values: immutable.IndexedSeq[NamedPermission] = findValues
 

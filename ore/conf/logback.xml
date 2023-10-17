@@ -33,9 +33,6 @@
         <OnMatch>DENY</OnMatch>
     </turboFilter>
 
-    <!-- Shutdown gracefully -->
-    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
-
     <!-- Play -->
     <logger name="play" level="INFO" />
     <logger name="application" level="INFO" />
@@ -69,4 +66,5 @@
     <logger name="ProjectSettings" level="INFO" />
     <logger name="ProjectFiles" level="INFO" />
     <logger name="Pages" level="INFO" />
+    <logger name="ApiV2Projects" level="INFO" />
 </configuration>

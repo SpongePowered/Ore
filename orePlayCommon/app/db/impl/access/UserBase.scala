@@ -2,8 +2,8 @@ package db.impl.access
 
 import scala.language.higherKinds
 
+import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
-import java.time.{Instant, OffsetDateTime, ZoneOffset}
 import java.util.UUID
 
 import play.api.mvc.Request

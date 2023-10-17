@@ -44,7 +44,7 @@
                                     <td>Flag resolved</td>
                                     <td>@prettifyDateAndTime(flag.resolvedAt.getOrElse(OffsetDateTime.MIN)))</td>
                                     <td>for:
-                                        <a href="@controllers.project.routes.Projects.show(flag.project.ownerName, flag.project.slug)">
+                                        <a href="@controllers.project.routes.Projects.show(flag.project.ownerName, flag.project.slug, "")">
                                             @flag.project.ownerName / @flag.project.slug
                                         </a>
                                     </td>

@@ -61,7 +61,7 @@ object Organization extends ModelCompanionPartial[Organization, OrganizationTabl
         // Down-grade current owner to "Admin"
         val oldOwner = m.ownerId
         for {
-          t2 <- (memberships.getRoles(m)(oldOwner), memberships.getRoles(m)(newOwner)).parTupled
+          t2 <- (memberships.getMembership(m)(oldOwner), memberships.getMembership(m)(newOwner)).parTupled
           (roles, memberRoles) = t2
           setOwner <- service.update(m)(_.copy(ownerId = newOwner))
           _ <- roles

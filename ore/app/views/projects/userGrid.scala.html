@@ -1,16 +1,16 @@
 @import controllers.sugar.Requests.OreRequest
-@import models.viewhelper.{ProjectData, ScopedProjectData}
+@import models.viewhelper.ProjectData
 @import ore.OreConfig
-@import ore.markdown.MarkdownRenderer
 @import ore.models.user.User
 @import util.syntax._
-@(title: String, call: Int => Call, p: ProjectData, sp: ScopedProjectData, users: Seq[User], page: Int, pageSize: Int)(implicit messages: Messages, request: OreRequest[_], flash: Flash, config: OreConfig, renderer: MarkdownRenderer, assetsFinder: AssetsFinder)
+@(title: String, call: Int => Call, p: ProjectData, users: Seq[User], page: Int, pageSize: Int)(implicit messages: Messages, request: OreRequest[_], flash: Flash, config: OreConfig, assetsFinder: AssetsFinder)
 
 @columns = @{
     3
 }
 
-@projects.view(p, sp, "") {
+@* TODO: Use Vue for this *@
+@layout.base(title) {
     <div class="row user-grid">
         <div class="col-xs-12">
             <h3 class="text-bold mb-0">@title</h3>

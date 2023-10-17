@@ -17,11 +17,11 @@ import ore.models.api.ProjectApiKey
 import ore.models.organization.Organization
 import ore.models.project.factory.ProjectFactory
 import ore.models.project.io.PluginUpload
-import ore.models.project.{Channel, Page, Project, Version}
+import ore.models.project.{Page, Project, TagColor, Version}
 import ore.models.user.{LoggedActionProject, LoggedActionType, User}
 import ore.permission.Permission
 import ore.permission.role.Role
-import ore.rest.{OreRestfulApiV1, OreWrites}
+import ore.rest.{FakeChannel, OreRestfulApiV1, OreWrites}
 import _root_.util.syntax._
 import _root_.util.{StatusZ, UserActionLogger}
 
@@ -49,7 +49,7 @@ final class ApiV1Controller(
   def AuthedProjectActionById(
       pluginId: String
   ): ActionBuilder[AuthedProjectRequest, AnyContent] =
-    UserLock(ShowHome).andThen(authedProjectActionById(pluginId))
+    Authenticated.andThen(authedProjectActionById(pluginId))
 
   private val Logger = scalalogging.Logger("SSO")
 
@@ -79,6 +79,17 @@ final class ApiV1Controller(
   def showProject(pluginId: String): Action[AnyContent] = Action.asyncF {
     this.api.getProject(pluginId).map(ApiResult)
   }
+
+  def getKey(pluginId: String): Action[AnyContent] =
+    Action.andThen(AuthedProjectActionById(pluginId)).andThen(ProjectPermissionAction(Permission.EditApiKeys)).asyncF {
+      implicit request =>
+        ModelView
+          .now(ProjectApiKey)
+          .find(_.projectId === request.project.id.value)
+          .value
+          .someOrFail(NotFound)
+          .map(key => Ok(Json.obj("id" -> key.id.value, "key" -> key.value)))
+    }
 
   def createKey(pluginId: String): Action[AnyContent] =
     Action.andThen(AuthedProjectActionById(pluginId)).andThen(ProjectPermissionAction(Permission.EditApiKeys)).asyncF {
@@ -116,22 +127,21 @@ final class ApiV1Controller(
   def revokeKey(pluginId: String): Action[AnyContent] =
     AuthedProjectActionById(pluginId).andThen(ProjectPermissionAction(Permission.EditApiKeys)).asyncF {
       implicit request =>
-        val res = for {
-          optKey <- forms.ProjectApiKeyRevoke.bindOptionT[UIO]
-          key    <- optKey
-          if key.projectId == request.data.project.id.value
-          _ <- OptionT.liftF(service.delete(key))
-          _ <- OptionT.liftF(
-            UserActionLogger.log(
-              request.request,
-              LoggedActionType.ProjectSettingsChanged,
-              request.data.project.id,
-              s"${request.user.name} removed an ApiKey",
-              ""
-            )(LoggedActionProject.apply)
-          )
+        for {
+          optKey <- forms.ProjectApiKeyRevoke
+            .bindZIO(hasErrors => BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson)))
+          key <- optKey.toZIO.orElseFail(BadRequest(Json.obj("error" -> "Key not found")))
+          _ <- if (key.projectId == request.data.project.id.value) ZIO.unit
+          else ZIO.fail(BadRequest(Json.obj("error" -> "Wrong key")))
+          _ <- service.delete(key)
+          _ <- UserActionLogger.log(
+            request.request,
+            LoggedActionType.ProjectSettingsChanged,
+            request.data.project.id,
+            s"${request.user.name} removed an ApiKey",
+            ""
+          )(LoggedActionProject.apply)
         } yield Ok
-        res.getOrElse(BadRequest)
     }
 
   /**
@@ -174,74 +184,75 @@ final class ApiV1Controller(
       forms.VersionDeploy
         .bindEitherT[ZIO[Blocking, Nothing, *]](hasErrors => BadRequest(Json.obj("errors" -> hasErrors.errorsAsJson)))
         .flatMap { formData =>
-          OptionT(formData.channel.value: ZIO[Blocking, Nothing, Option[Model[Channel]]])
-            .toRight(BadRequest(Json.obj("errors" -> "Invalid channel")))
-            .map(formData -> _)
-        }
-        .flatMap {
-          case (formData, formChannel) =>
-            val apiKeyTable = TableQuery[ProjectApiKeyTable]
-            def queryApiKey(key: String, pId: DbRef[Project]) = {
-              val query = for {
-                k <- apiKeyTable if k.value === key && k.projectId === pId
-              } yield {
-                k.id
-              }
-              query.exists
+          val stability = formData.channel
+            .map(_.toLowerCase)
+            .collect {
+              case "release"    => Version.Stability.Stable
+              case "beta"       => Version.Stability.Beta
+              case "prerelease" => Version.Stability.Beta
+              case "alpha"      => Version.Stability.Alpha
+              case "unstable"   => Version.Stability.Alpha
+              case "bleeding"   => Version.Stability.Bleeding
+              case "snapshot"   => Version.Stability.Bleeding
             }
+            .getOrElse(Version.Stability.Stable)
 
-            val query = Query.apply(
-              (
-                queryApiKey(formData.apiKey, project.id),
-                project.versions(ModelView.later(Version)).exists(_.versionString === name)
-              )
+          val apiKeyTable = TableQuery[ProjectApiKeyTable]
+          def queryApiKey(key: String, pId: DbRef[Project]) = {
+            val query = for {
+              k <- apiKeyTable if k.value === key && k.projectId === pId
+            } yield {
+              k.id
+            }
+            query.exists
+          }
+
+          val query = Query.apply(
+            (
+              queryApiKey(formData.apiKey, project.id),
+              project.versions(ModelView.later(Version)).exists(_.versionString === name)
             )
+          )
 
-            EitherT
-              .liftF[ZIO[Blocking, Nothing, *], Result, (Boolean, Boolean)](service.runDBIO(query.result.head))
-              .ensure(Unauthorized(error("apiKey", "api.deploy.invalidKey")))(apiKeyExists => apiKeyExists._1)
-              .ensure(BadRequest(error("versionName", "api.deploy.versionExists")))(nameExists => !nameExists._2)
-              .semiflatMap(_ => project.user[Task].orDie)
-              .semiflatMap(user =>
-                user.toMaybeOrganization(ModelView.now(Organization)).semiflatMap(_.user[Task].orDie).getOrElse(user)
-              )
-              .flatMap { owner =>
-                val pluginUpload = this.factory
-                  .getUploadError(owner)
-                  .map(err => BadRequest(error("user", err)))
-                  .toLeft(PluginUpload.bindFromRequest())
-                  .flatMap(_.toRight(BadRequest(error("files", "error.noFile"))))
+          EitherT
+            .liftF[ZIO[Blocking, Nothing, *], Result, (Boolean, Boolean)](service.runDBIO(query.result.head))
+            .ensure(Unauthorized(error("apiKey", "api.deploy.invalidKey")))(apiKeyExists => apiKeyExists._1)
+            .ensure(BadRequest(error("versionName", "api.deploy.versionExists")))(nameExists => !nameExists._2)
+            .semiflatMap(_ => project.user[Task].orDie)
+            .semiflatMap(user =>
+              user.toMaybeOrganization(ModelView.now(Organization)).semiflatMap(_.user[Task].orDie).getOrElse(user)
+            )
+            .flatMap { owner =>
+              val pluginUpload = PluginUpload.bindFromRequest().toRight(BadRequest(error("files", "error.noFile")))
 
-                EitherT.fromEither[ZIO[Blocking, Nothing, *]](pluginUpload).flatMap { data =>
-                  EitherT(
-                    this.factory
-                      .processSubsequentPluginUpload(data, owner, project)
-                      .either
-                  ).leftMap(err => BadRequest(error("upload", err)))
-                }
+              EitherT.fromEither[ZIO[Blocking, Nothing, *]](pluginUpload).flatMap { data =>
+                EitherT(
+                  this.factory
+                    .collectErrorsForVersionUpload(data, owner, project)
+                    .either
+                ).leftMap(err => BadRequest(error("upload", err)))
               }
-              .map { pendingVersion =>
-                pendingVersion.copy(
-                  createForumPost = formData.createForumPost,
-                  channelName = formChannel.name,
-                  description = formData.changelog
+            }
+            .flatMap { fileWithData =>
+              EitherT(
+                factory
+                  .createVersion(project, fileWithData, formData.changelog, formData.createForumPost, stability, None)
+                  .either
+              ).leftMap { es =>
+                BadRequest(JsArray(es.toList.view.zipWithIndex.map(t => error(t._2.toString, t._1)).toSeq))
+              }
+            }
+            .map {
+              case (newProject, newVersion, _) =>
+                Created(
+                  api.writeVersion(
+                    newVersion,
+                    newProject,
+                    FakeChannel("Channel", TagColor.Green, isNonReviewed = false),
+                    None
+                  )
                 )
-              }
-              .semiflatMap(_.complete(project, factory))
-              .semiflatMap {
-                case (newProject, newVersion, channel, tags) =>
-                  val update =
-                    if (formData.recommended)
-                      service.update(project)(
-                        _.copy(
-                          recommendedVersionId = Some(newVersion.id)
-                        )
-                      )
-                    else
-                      ZIO.unit
-
-                  update.as(Created(api.writeVersion(newVersion, newProject, channel, None, tags)))
-              }
+            }
         }
         .merge
     }

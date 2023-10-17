@@ -14,7 +14,7 @@ import ore.db.impl.query.UserQueries
 import ore.db.impl.schema._
 import ore.db.impl.{ModelCompanionPartial, OrePostgresDriver}
 import ore.models.organization.Organization
-import ore.models.project.{Flag, Project, Visibility}
+import ore.models.project.{Flag, Project}
 import ore.models.user.role.{DbRole, OrganizationUserRole, ProjectUserRole}
 import ore.permission._
 import ore.permission.scope._
@@ -41,7 +41,6 @@ case class User(
     tagline: Option[String] = None,
     joinDate: Option[OffsetDateTime] = None,
     readPrompts: List[Prompt] = Nil,
-    isLocked: Boolean = false,
     lang: Option[Locale] = None
 ) extends Named
 
@@ -55,15 +54,6 @@ object User extends ModelCompanionPartial[User, UserTable](TableQuery[UserTable]
 
   implicit val query: ModelQuery[User] =
     ModelQuery.from(this)
-
-  implicit val assocMembersQuery: AssociationQuery[ProjectMembersTable, User, Project] =
-    AssociationQuery.from[ProjectMembersTable, User, Project](TableQuery[ProjectMembersTable])(_.userId, _.projectId)
-
-  implicit val assocOrgMembersQuery: AssociationQuery[OrganizationMembersTable, User, Organization] =
-    AssociationQuery.from[OrganizationMembersTable, User, Organization](TableQuery[OrganizationMembersTable])(
-      _.userId,
-      _.organizationId
-    )
 
   implicit val assocStarsQuery: AssociationQuery[ProjectStarsTable, User, Project] =
     AssociationQuery.from[ProjectStarsTable, User, Project](TableQuery[ProjectStarsTable])(_.userId, _.projectId)
@@ -83,17 +73,6 @@ object User extends ModelCompanionPartial[User, UserTable](TableQuery[UserTable]
         F: Functor[F]
     ): ParentAssociationAccess[UserGlobalRolesTable, User, DbRole, UserTable, DbRoleTable, F] =
       new ModelAssociationAccessImpl(OrePostgresDriver)(User, DbRole).applyParent(self.id)
-
-    /**
-      * Returns the [[Organization]]s that this User belongs to.
-      *
-      * @return Organizations user belongs to
-      */
-    def organizations[F[_]](
-        implicit service: ModelService[F],
-        F: Functor[F]
-    ): ParentAssociationAccess[OrganizationMembersTable, User, Organization, UserTable, OrganizationTable, F] =
-      new ModelAssociationAccessImpl(OrePostgresDriver)(User, Organization).applyParent(self.id)
 
     /**
       * Returns the [[Project]]s that this User is watching.
@@ -146,23 +125,6 @@ object User extends ModelCompanionPartial[User, UserTable](TableQuery[UserTable]
       }
 
       service.runDbCon(conIO).map(_ ++ alwaysHasPermissions)
-    }
-
-    /**
-      * Returns the Projects that this User has starred.
-      *
-      * @return Projects user has starred
-      */
-    def starred[F[_]](implicit service: ModelService[F]): F[Seq[Model[Project]]] = {
-      val filter = Visibility.isPublicFilter[ProjectTable]
-
-      val baseQuery = for {
-        assoc   <- TableQuery[ProjectStarsTable] if assoc.userId === self.id.value
-        project <- TableQuery[ProjectTable] if assoc.projectId === project.id
-        if filter(project)
-      } yield project
-
-      service.runDBIO(baseQuery.sortBy(_.name).result)
     }
 
     /**

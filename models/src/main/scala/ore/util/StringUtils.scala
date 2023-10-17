@@ -1,8 +1,7 @@
 package ore.util
 
-import java.nio.file.{Files, Path}
 import java.security.MessageDigest
-import java.text.MessageFormat
+import java.util.Locale
 
 import ore.db.impl.OrePostgresDriver.api._
 
@@ -11,13 +10,18 @@ import ore.db.impl.OrePostgresDriver.api._
   */
 object StringUtils {
 
+  private val replaceRegex = """[^a-z\-_.0-9]""".r.unanchored
+
   /**
     * Returns a URL readable string from the specified string.
     *
     * @param str  String to create slug for
     * @return     Slug of string
     */
-  def slugify(str: String): String = compact(str).replace(' ', '-')
+  def slugify(str: String): String = {
+    val replaced = replaceRegex.replaceAllIn(compact(str).toLowerCase(Locale.ROOT).replace(' ', '-'), "")
+    replaced.substring(0, Math.min(32, replaced.length))
+  }
 
   /**
     * Returns the specified String with all consecutive spaces removed.

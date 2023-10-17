@@ -160,7 +160,7 @@ object OreJobProcessorMain extends zio.ManagedApp {
       .fromEither(OreJobsConfig.load)
       .flatMapError { es =>
         Logger.error(
-          s"Failed to load config:${es.toList.map(e => s"${e.description} -> ${e.origin.fold("")(_.description)}").mkString("\n  ", "\n  ", "")}"
+          s"Failed to load config:\n${es.prettyPrint(1)}"
         )
         ZManaged.succeed(ExitCode.failure)
       }

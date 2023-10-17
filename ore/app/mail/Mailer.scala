@@ -2,7 +2,6 @@ package mail
 
 import java.security.Security
 import java.util.Date
-import javax.inject.{Inject, Singleton}
 import javax.mail.Message.RecipientType
 import javax.mail.Session
 import javax.mail.internet.{InternetAddress, MimeMessage}

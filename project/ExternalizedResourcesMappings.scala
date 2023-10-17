@@ -1,16 +1,16 @@
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.universal.UniversalPlugin
-import sbt._
 import sbt.Keys._
 import sbt.Path._
+import sbt._
 
 /**
   * Externalizes the resources like with Play, but as a standalone plugin.
   */
 object ExternalizedResourcesMappings extends AutoPlugin {
   override def requires: Plugins = UniversalPlugin && JavaAppPackaging
-  import UniversalPlugin.autoImport._
   import JavaAppPackaging.autoImport._
+  import UniversalPlugin.autoImport._
 
   object autoImport {
     val externalizedResources = TaskKey[Seq[(File, String)]]("externalizedResources", "The resources to externalize")

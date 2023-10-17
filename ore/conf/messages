@@ -415,3 +415,23 @@ visibility.notice.author.new    = Click ''Publish'' to publish. This project wil
 visibility.notice.needsChanges  = This project requires changes:
 visibility.notice.needsApproval = You have send the project for review
 visibility.notice.softDelete    = Project deleted by {0}
+
+tags.spongeapi.name     = Sponge
+tags.spongeforge.name   = SpongeForge
+tags.spongevanilla.name = SpongeVanilla
+tags.spongecommon.name  = SpongeCommon
+tags.lantern.name       = Lantern
+tags.forge.name         = Forge
+tags.mixin.name         = Mixin
+tags.stability.name     = Stability
+tags.channel.name       = Channel
+
+tags.spongeapi.description     = The SpongeAPI version supported
+tags.spongeforge.description   = The SpongeForge version required
+tags.spongevanilla.description = The SpongeVanilla version required
+tags.spongecommon.description  = The SpongeCommon version required
+tags.lantern.description       = The Lantern version required
+tags.forge.description         = The Forge version required
+tags.mixin.description         = Included if Mixins are used
+tags.stability.description     = The stability of the version
+tags.channel.description       = The relic of an old age

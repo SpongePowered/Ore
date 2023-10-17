@@ -1,0 +1,16 @@
+{
+  "config": "../../../conf/loaders/spongePluginsJson.conf",
+  "commonName": "spongePluginsJson",
+  "tests": [
+    {
+      "name": "basic",
+      "file": "spongePluginsJson/basic.json",
+      "result": "spongePluginsJson/basic_result.json"
+    },
+    {
+      "name": "multiple plugins",
+      "file": "spongePluginsJson/multiple_plugins.json",
+      "result": "spongePluginsJson/multiple_plugins_result.json"
+    }
+  ]
+}

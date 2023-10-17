@@ -2,9 +2,9 @@ package ore.models
 
 import java.time.OffsetDateTime
 
-import ore.db.{DbRef, ModelQuery}
 import ore.db.impl.DefaultModelCompanion
 import ore.db.impl.schema.JobTable
+import ore.db.{DbRef, ModelQuery}
 import ore.models.project.{Project, Version}
 
 import enumeratum.values._

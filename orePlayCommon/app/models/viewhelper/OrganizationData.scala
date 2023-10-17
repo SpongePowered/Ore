@@ -41,9 +41,9 @@ object OrganizationData {
       par: Parallel[F]
   ): F[OrganizationData] = {
     for {
-      members <- orga.memberships.members(orga)
+      members <- orga.memberships.membersIds(orga)
       members <- members.toVector.traverse { userId =>
-        val orgaRole = orga.memberships.getRoles(orga)(userId).map(_.maxBy(_.role.permissions: Long))
+        val orgaRole = orga.memberships.getMembership(orga)(userId).map(_.maxBy(_.role.permissions: Long))
         val users =
           ModelView.now(User).get(userId).getOrElseF(F.raiseError(new Exception("Member of organization not found")))
         (orgaRole, users).parTupled

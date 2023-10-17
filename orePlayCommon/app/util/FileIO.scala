@@ -4,8 +4,8 @@ import scala.language.higherKinds
 
 import java.nio.file.Path
 
-import cats.{Applicative, Defer, Traverse, ~>}
 import cats.effect.{Bracket, Resource}
+import cats.{Applicative, Defer, Traverse, ~>}
 
 trait FileIO[F[_]] { self =>
 

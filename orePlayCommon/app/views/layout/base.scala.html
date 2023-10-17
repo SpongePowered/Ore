@@ -8,25 +8,20 @@ this.
 @import ore.OreConfig
 @import views.html.helper.CSPNonce
 @(title: String, additionalScripts: Html = Html(""), scriptsEnabled: Boolean = true, authEnabled: Boolean = true, showHeader: Boolean = true,
-        showFooter: Boolean = true, noContainer: Boolean = false, additionalMeta: Html = Html(""), additionalStyling: Html = Html(""))(content: Html)(implicit request: OreRequest[_], messages: Messages, config: OreConfig, flash: Flash, assetsFinder: AssetsFinder)
+        showFooter: Boolean = true, noContainer: Boolean = false, empty: Boolean = false, additionalMeta: Html = Html(""), additionalStyling: Html = Html(""))(content: Html)(implicit request: OreRequest[_], messages: Messages, config: OreConfig, flash: Flash, assetsFinder: AssetsFinder)
 
 <!DOCTYPE html>
 <html lang="@messages.lang.language">
     <head>
         <link href="@config.auth.api.url" rel="preconnect" crossorigin>
         <link href="@config.application.discourseCdnUrl" rel="preconnect" crossorigin>
-        <link href="@config.auth.api.url" rel="dns-prefetch" >
-        <link href="@config.application.discourseCdnUrl" rel="dns-prefetch" >
 
-        <link rel="prefetch" href="@assetsFinder.path("images/favicon.ico")">
-        <link rel="prefetch" href="https://fonts.googleapis.com/css?family=Montserrat:400,700">
-        <link rel="prefetch" href="@assetsFinder.path("highlight/styles/default.css")">
-        <link rel="prefetch" href="@assetsFinder.path("bootstrap/css/bootstrap.min.css")">
-        <link rel="prefetch" href="@assetsFinder.path("build/commons.css")">
-        <link rel="prefetch" href="@routes.Assets.versioned("build/main.css")">
-        <link rel="prefetch" href="@assetsFinder.path("build/font-awesome.css")">
-        <link rel="prefetch" href="@assetsFinder.path("manifest/manifest.json")">
-        <link rel="prefetch" href="@routes.Assets.versioned("lib/jquery/dist/jquery.min.js")">
+        <link rel="preload" href="https://fonts.googleapis.com/css?family=Montserrat:400,700" as="style">
+        <link rel="preload" href="@assetsFinder.path("highlight/styles/default.css")" as="style">
+        <link rel="preload" href="@assetsFinder.path("bootstrap/css/bootstrap.min.css")" as="style">
+        <link rel="preload" href="@assetsFinder.path("lib/ore-client/main.css")" as="style">
+        <link rel="preload" href="@assetsFinder.path("lib/jquery/dist/jquery.min.js")" as="script">
+        <link rel="preload" type="text/javascript" href="@routes.Application.javascriptRoutes" as="script">
 
         <title>@title</title>
 
@@ -39,25 +34,27 @@ this.
         <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="@assetsFinder.path("highlight/styles/default.css")" />
         <link rel="stylesheet" type="text/css" href="@assetsFinder.path("bootstrap/css/bootstrap.min.css")" />
-        <link rel="stylesheet" type="text/css" href="@assetsFinder.path("build/font-awesome.css")" />
-        <link rel="stylesheet" type="text/css" href="@assetsFinder.path("build/commons.css")" />
-        <link rel="stylesheet" type="text/css" href="@routes.Assets.versioned("build/main.css")" />
+        <link rel="stylesheet" type="text/css" href="@assetsFinder.path("lib/ore-client/vendors.css")" />
+        <link rel="stylesheet" type="text/css" href="@assetsFinder.path("lib/ore-client/main.css")" />
         @additionalStyling
 
         <!-- See https://goo.gl/OOhYW5 and https://goo.gl/qRE0vM -->
-        <link rel="manifest" href="@assetsFinder.path("manifest/manifest.json")">
+        <link rel="manifest" href="@assetsFinder.path("manifest/manifest.webmanifest")">
         <meta name="theme-color" content="#333">
 
-        <script type="text/javascript" src="@routes.Assets.versioned("lib/jquery/dist/jquery.min.js")"></script>
+        <script type="text/javascript" src="@assetsFinder.path("lib/jquery/dist/jquery.min.js")"></script>
     </head>
-    <body class="site">
-        @if(showHeader) {
-            @layout.header(authEnabled)
-        }
+    <body @if(!empty) {class="site"}>
+        @if(empty) {
+          @content
+        } else {
+            @if(showHeader) {
+                @layout.header(authEnabled)
+            }
 
-        <div class="site-content">
+            <div class="site-content">
             @if(noContainer) {
-              @content
+                @content
             } else {
                 <div class="container @if(showHeader){site-header-margin}">
                     @if(config.ore.staging) {
@@ -79,10 +76,11 @@ this.
                     @content
                 </div>
             }
-        </div>
+            </div>
 
-        @if(showFooter) {
-            @layout.footer()
+            @if(showFooter) {
+                @layout.footer()
+            }
         }
 
         @if(scriptsEnabled) {
@@ -95,13 +93,9 @@ this.
             }
 
             <script type="text/javascript" src="@routes.Application.javascriptRoutes"></script>
-            <script type="text/javascript" src="@assetsFinder.path("build/vendors.js")"></script>
-            <script type="text/javascript" src="@assetsFinder.path("build/font-awesome.js")"></script>
-            <script type="text/javascript" src="@assetsFinder.path("build/commons.js")"></script>
-            <script type="text/javascript" src="@assetsFinder.path("lib/moment/min/moment.min.js")"></script>
+            <script type="text/javascript" src="@assetsFinder.path("lib/ore-client/vendors.js")"></script>
+            <script type="text/javascript" src="@assetsFinder.path("lib/ore-client/font-awesome.js")"></script>
             <script type="text/javascript" src="@assetsFinder.path("bootstrap/js/bootstrap.min.js")"></script>
-            <script type="text/javascript" src="@assetsFinder.path("lib/filesize/lib/filesize.js")"></script>
-            <script type="text/javascript" src="@assetsFinder.path("lib/clipboard/dist/clipboard.min.js")"></script>
             <script type="text/javascript" src="@assetsFinder.path("highlight/highlight.pack.js")"></script>
             <script type="text/javascript" src="@assetsFinder.path("javascripts/main.js")"></script>
             <script type="text/javascript" src="@assetsFinder.path("javascripts/apiRequests.js")"></script>

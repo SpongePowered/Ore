@@ -2,21 +2,24 @@ package controllers.sugar
 
 import java.time.OffsetDateTime
 
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.mvc.{Request, Results, WrappedRequest}
 
 import models.viewhelper._
+import ore.db.access.ModelView
+import ore.db.impl.OrePostgresDriver.api._
 import ore.db.{Model, ModelService}
 import ore.models.api.ApiKey
 import ore.models.organization.Organization
-import ore.models.project.Project
+import ore.models.project.{Project, Version}
 import ore.models.user.User
 import ore.permission.Permission
-import ore.permission.scope.{GlobalScope, HasScope}
+import ore.permission.scope.{GlobalScope, HasScope, OrganizationScope, ProjectScope, Scope}
 import ore.util.OreMDC
 import util.syntax._
 
 import cats.Applicative
 import org.slf4j.MDC
+import zio.{UIO, ZIO}
 
 /**
   * Contains the custom WrappedRequests used by Ore.
@@ -29,20 +32,26 @@ object Requests {
       session: Option[String],
       expires: OffsetDateTime,
       globalPerms: Permission
-  )
+  ) {
 
-  case class ApiRequest[A](apiInfo: ApiAuthInfo, request: Request[A]) extends WrappedRequest[A](request) with OreMDC {
+    def permissionIn[B: HasScope, F[_]](b: B)(implicit service: ModelService[F], F: Applicative[F]): F[Permission] =
+      if (b.scope == GlobalScope) F.pure(globalPerms)
+      else
+        key
+          .map(_.permissionsIn(b))
+          .orElse(user.map(_.permissionsIn(b)))
+          .getOrElse(F.pure(globalPerms))
+  }
+
+  case class ApiRequest[S <: Scope, A](apiInfo: ApiAuthInfo, scopePermission: Permission, scope: S, request: Request[A])
+      extends WrappedRequest[A](request)
+      with OreMDC {
     def user: Option[Model[User]] = apiInfo.user
 
     def globalPermissions: Permission = apiInfo.globalPerms
 
     def permissionIn[B: HasScope, F[_]](b: B)(implicit service: ModelService[F], F: Applicative[F]): F[Permission] =
-      if (b.scope == GlobalScope) F.pure(apiInfo.globalPerms)
-      else
-        apiInfo.key
-          .map(_.permissionsIn(b))
-          .orElse(apiInfo.user.map(_.permissionsIn(b)))
-          .getOrElse(F.pure(globalPermissions))
+      apiInfo.permissionIn(b)
 
     override def logMessage(s: String): String = {
       user.foreach(mdcPutUser)
@@ -50,6 +59,24 @@ object Requests {
     }
 
     override def afterLog(): Unit = mdcClear()
+
+    def project(implicit service: ModelService[UIO], ev: S =:= ProjectScope): ZIO[Any, Results.Status, Model[Project]] =
+      ModelView.now(Project).get(ev(scope).id).toZIO.orElseFail(Results.NotFound)
+
+    def version(
+        versionString: String
+    )(implicit service: ModelService[UIO], ev: S =:= ProjectScope): ZIO[Any, Results.Status, Model[Version]] =
+      ModelView
+        .now(Version)
+        .find(v => v.projectId === ev(scope).id && v.versionString === versionString)
+        .toZIO
+        .orElseFail(Results.NotFound)
+
+    def organization(
+        implicit service: ModelService[UIO],
+        ev: S =:= OrganizationScope
+    ): ZIO[Any, Results.Status, Model[Organization]] =
+      ModelView.now(Organization).get(ev(scope).id).toZIO.orElseFail(Results.NotFound)
   }
 
   private def mdcPutUser(user: Model[User]): Unit = {
@@ -134,12 +161,10 @@ object Requests {
     * A request that holds a [[Project]].
     *
     * @param data Project data to hold
-    * @param scoped scoped Project data to hold
     * @param request Request to wrap
     */
   sealed class ProjectRequest[A](
       val data: ProjectData,
-      val scoped: ScopedProjectData,
       val headerData: HeaderData,
       val request: Request[A]
   ) extends WrappedRequest[A](request)
@@ -158,15 +183,13 @@ object Requests {
     * A request that holds a Project and a [[AuthRequest]].
     *
     * @param data Project data to hold
-    * @param scoped scoped Project data to hold
     * @param request An [[AuthRequest]]
     */
   final case class AuthedProjectRequest[A](
       override val data: ProjectData,
-      override val scoped: ScopedProjectData,
       override val headerData: HeaderData,
       override val request: AuthRequest[A]
-  ) extends ProjectRequest[A](data, scoped, headerData, request)
+  ) extends ProjectRequest[A](data, headerData, request)
       with ScopedRequest[A]
       with OreRequest[A] {
 

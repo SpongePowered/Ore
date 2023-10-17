@@ -9,7 +9,7 @@ import form.OreForms
 import ore.data.user.notification.NotificationType
 import ore.db.access.ModelView
 import ore.db.impl.OrePostgresDriver.api._
-import ore.db.impl.schema.{OrganizationMembersTable, OrganizationRoleTable, OrganizationTable, UserTable}
+import ore.db.impl.schema.{OrganizationRoleTable, OrganizationTable, ProjectTable, UserTable}
 import ore.db.{DbRef, Model}
 import ore.markdown.MarkdownRenderer
 import ore.models.admin.{Message, Review}
@@ -27,7 +27,6 @@ import io.circe.Json
 import slick.lifted.{Rep, TableQuery}
 import zio.interop.catz._
 import zio.{UIO, ZIO}
-import zio.interop.catz._
 
 /**
   * Controller for handling Review related actions.
@@ -121,10 +120,10 @@ final class Reviews(forms: OreForms)(
   ): Query[(Rep[DbRef[User]], Rep[Option[Role]]), (DbRef[User], Option[Role]), Seq] = {
     // Query Orga Members
     val q1 = for {
-      org     <- TableQuery[OrganizationTable] if org.id === projectId
-      members <- TableQuery[OrganizationMembersTable] if org.id === members.organizationId
-      roles   <- TableQuery[OrganizationRoleTable] if members.userId === roles.userId // TODO roletype lvl in database?
-      users   <- TableQuery[UserTable] if members.userId === users.id
+      project <- TableQuery[ProjectTable] if project.id === projectId
+      org     <- TableQuery[OrganizationTable] if org.id === project.ownerId
+      roles   <- TableQuery[OrganizationRoleTable] if roles.organizationId === org.id // TODO roletype lvl in database?
+      users   <- TableQuery[UserTable] if users.id === roles.userId
     } yield (users.id, roles.roleType.?)
 
     // Query version author

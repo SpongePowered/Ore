@@ -68,10 +68,10 @@ package object permission {
     val ViewStats  = Permission(1L << 34)
     val ViewLogs   = Permission(1L << 35)
 
-    val ManualValueChanges  = Permission(1L << 40)
-    val HardDeleteProject   = Permission(1L << 41)
-    val HardDeleteVersion   = Permission(1L << 42)
-    val EditAllUserSettings = Permission(1L << 43)
+    val ManualValueChanges = Permission(1L << 40)
+    val HardDeleteProject  = Permission(1L << 41)
+    val HardDeleteVersion  = Permission(1L << 42)
+    val EditAdminSettings  = Permission(1L << 43)
   }
 
   implicit class PermissionSyntax(private val permission: Permission) extends AnyVal {

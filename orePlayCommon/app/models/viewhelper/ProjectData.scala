@@ -3,7 +3,6 @@ package models.viewhelper
 import scala.language.higherKinds
 
 import play.api.mvc.RequestHeader
-import play.twirl.api.Html
 
 import db.impl.query.SharedQueries
 import ore.OreConfig
@@ -11,7 +10,6 @@ import ore.db.access.ModelView
 import ore.db.impl.OrePostgresDriver.api._
 import ore.db.impl.schema.{ProjectRoleTable, UserTable}
 import ore.db.{Model, ModelService}
-import ore.markdown.MarkdownRenderer
 import ore.models.admin.ProjectVisibilityChange
 import ore.models.project._
 import ore.models.project.io.ProjectFiles
@@ -20,7 +18,6 @@ import ore.models.user.{User, UserOwned}
 import ore.permission.role.RoleCategory
 import util.syntax._
 
-import cats.data.OptionT
 import cats.syntax.all._
 import cats.{MonadError, Parallel}
 import slick.lifted.TableQuery
@@ -30,17 +27,13 @@ import slick.lifted.TableQuery
   */
 case class ProjectData(
     joinable: Model[Project],
-    projectOwner: Model[User],
-    publicVersions: Int, // project.versions.count(_.visibility === VisibilityTypes.Public)
     members: Seq[(Model[ProjectUserRole], Model[User])],
     flags: Seq[(Model[Flag], String, Option[String])], // (Flag, user.name, resolvedBy)
     noteCount: Int,                                    // getNotes.size
     lastVisibilityChange: Option[ProjectVisibilityChange],
     lastVisibilityChangeUser: String, // users.get(project.lastVisibilityChange.get.createdBy.get).map(_.username).getOrElse("Unknown")
-    recommendedVersion: Option[Model[Version]],
     iconUrl: String,
-    starCount: Long,
-    watcherCount: Long
+    starCount: Long
 ) extends JoinableData[ProjectUserRole, Project] {
 
   def flagCount: Int = flags.size
@@ -48,11 +41,6 @@ case class ProjectData(
   def project: Model[Project] = joinable
 
   def visibility: Visibility = joinable.obj.visibility
-
-  def fullSlug = s"""/${project.ownerName}/${project.slug}"""
-
-  def renderVisibilityChange(implicit renderer: MarkdownRenderer): Option[Html] =
-    lastVisibilityChange.map(_.render)
 
   def roleCategory: RoleCategory = RoleCategory.Project
 
@@ -91,40 +79,30 @@ object ProjectData {
       }
 
     (
-      project.user,
-      project.versions(ModelView.now(Version)).count(_.visibility === (Visibility.Public: Visibility)),
       members(project),
       service.runDBIO(flagsWithNames.result),
       service.runDBIO(lastVisibilityChangeUserWithUser.result.headOption),
-      project.recommendedVersion(ModelView.now(Version)).getOrElse(OptionT.none[F, Model[Version]]).value,
       project.obj.iconUrl,
       service.runDbCon(SharedQueries.watcherStartProject(project.id).unique)
     ).parMapN {
       case (
-          projectOwner,
-          versions,
           members,
           flagData,
           lastVisibilityChangeInfo,
-          recommendedVersion,
           iconUrl,
-          (starCount, watcherCount)
+          starCount
           ) =>
         val noteCount = project.decodeNotes.size
 
         new ProjectData(
           project,
-          projectOwner,
-          versions,
           members.sortBy(_._1.role.permissions: Long).reverse, //This is stupid, but works
           flagData,
           noteCount,
           lastVisibilityChangeInfo.map(_._1),
           lastVisibilityChangeInfo.flatMap(_._2).getOrElse("Unknown"),
-          recommendedVersion,
           iconUrl,
-          starCount,
-          watcherCount
+          starCount
         )
     }
   }

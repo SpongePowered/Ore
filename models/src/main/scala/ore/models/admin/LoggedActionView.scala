@@ -1,12 +1,10 @@
 package ore.models.admin
 
 import ore.db._
-import ore.db.impl.ModelCompanionPartial
 import ore.models.project.{Page, Project, Version}
-import ore.models.user.{LoggedActionType, LoggedActionContext, User, UserOwned}
+import ore.models.user.{LoggedActionContext, LoggedActionType, User}
 
 import com.github.tminglei.slickpg.InetString
-import slick.lifted.TableQuery
 
 case class LoggedProject(
     id: Option[DbRef[Project]],

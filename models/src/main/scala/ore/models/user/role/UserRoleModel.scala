@@ -3,8 +3,9 @@ package ore.models.user.role
 import scala.language.higherKinds
 
 import ore.db.impl.common.Visitable
-import ore.db.{Model, ModelService}
+import ore.db.{DbRef, Model, ModelService}
 import ore.models.organization.Organization
+import ore.models.user.User
 import ore.permission.role.Role
 
 import cats.MonadError
@@ -14,6 +15,8 @@ import cats.MonadError
   * [[Organization]].
   */
 abstract class UserRoleModel[Self] {
+
+  def userId: DbRef[User]
 
   /**
     * Type of Role

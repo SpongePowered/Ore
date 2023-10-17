@@ -2,22 +2,7 @@
 
 const KEY_ENTER = 13;
 
-//=====> SETUP
-
-const clipboardManager = new ClipboardJS('.copy-url');
-clipboardManager.on('success', function(e) {
-    const element = $('.btn-download').tooltip({title: 'Copied!', placement: 'bottom', trigger: 'manual'}).tooltip('show');
-    setTimeout(function () {
-        element.tooltip('destroy');
-    }, 2200);
-});
-
-
 //=====> HELPER FUNCTIONS
-
-function sanitize(html) {
-    return $('<textarea>').html(html).text();
-}
 
 function decodeHtml(html) {
     // lol
@@ -40,18 +25,8 @@ function initTooltips() {
     });
 }
 
-function slugify(name) {
-    return name.trim().replace(/ +/g, ' ').replace(/ /g, '-');
-}
-
 function toggleSpinner(e) {
     return e.toggleClass('fa-spinner').toggleClass('fa-spin');
-}
-
-function numberWithCommas(x) {
-    const parts = x.toString().split(".");
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return parts.join(".");
 }
 
 

@@ -15,23 +15,22 @@ class ProjectTable(tag: Tag)
     with VisibilityColumn[Project]
     with DescriptionColumn[Project] {
 
-  def pluginId             = column[String]("plugin_id")
-  def ownerName            = column[String]("owner_name")
-  def ownerId              = column[DbRef[User]]("owner_id")
-  def slug                 = column[String]("slug")
-  def recommendedVersionId = column[DbRef[Version]]("recommended_version_id")
-  def category             = column[Category]("category")
-  def topicId              = column[Option[Int]]("topic_id")
-  def postId               = column[Int]("post_id")
-  def notes                = column[Json]("notes")
-  def keywords             = column[List[String]]("keywords")
-  def homepage             = column[String]("homepage")
-  def issues               = column[String]("issues")
-  def source               = column[String]("source")
-  def support              = column[String]("support")
-  def licenseName          = column[String]("license_name")
-  def licenseUrl           = column[String]("license_url")
-  def forumSync            = column[Boolean]("forum_sync")
+  def pluginId    = column[String]("plugin_id")
+  def ownerName   = column[String]("owner_name")
+  def ownerId     = column[DbRef[User]]("owner_id")
+  def slug        = column[String]("slug")
+  def category    = column[Category]("category")
+  def topicId     = column[Option[Int]]("topic_id")
+  def postId      = column[Int]("post_id")
+  def notes       = column[Json]("notes")
+  def keywords    = column[List[String]]("keywords")
+  def homepage    = column[String]("homepage")
+  def issues      = column[String]("issues")
+  def source      = column[String]("source")
+  def support     = column[String]("support")
+  def licenseName = column[String]("license_name")
+  def licenseUrl  = column[String]("license_url")
+  def forumSync   = column[Boolean]("forum_sync")
 
   def settings =
     (
@@ -54,8 +53,6 @@ class ProjectTable(tag: Tag)
         ownerName,
         ownerId,
         name,
-        slug,
-        recommendedVersionId.?,
         category,
         description.?,
         topicId,

@@ -10,7 +10,7 @@ class PageTable(tag: Tag) extends ModelTable[Page](tag, "project_pages") with Na
   def projectId   = column[DbRef[Project]]("project_id")
   def parentId    = column[Option[DbRef[Page]]]("parent_id")
   def slug        = column[String]("slug")
-  def contents    = column[String]("contents")
+  def contents    = column[Option[String]]("contents")
   def isDeletable = column[Boolean]("is_deletable")
 
   override def * =

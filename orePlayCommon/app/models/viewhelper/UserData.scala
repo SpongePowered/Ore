@@ -28,8 +28,7 @@ case class UserData(
     projectCount: Int,
     orgas: Seq[(Model[Organization], Model[User], Model[OrganizationUserRole], Model[User])],
     globalRoles: Set[Role],
-    userPerm: Permission,
-    orgaPerm: Permission
+    userPerm: Permission
 ) {
 
   def global: HeaderData = headerData
@@ -59,21 +58,17 @@ object UserData {
       isOrga       <- user.toMaybeOrganization(ModelView.now(Organization)).isDefined
       projectCount <- user.projects(ModelView.now(Project)).size
       t            <- perms(user)
-      (globalRoles, userPerms, orgaPerms) = t
+      (globalRoles, userPerms) = t
       orgas <- service.runDBIO(queryRoles(user).result)
-    } yield UserData(request.headerData, user, isOrga, projectCount, orgas, globalRoles, userPerms, orgaPerms)
+    } yield UserData(request.headerData, user, isOrga, projectCount, orgas, globalRoles, userPerms)
 
   def perms[F[_]](user: Model[User])(
       implicit service: ModelService[F],
       F: Monad[F],
       par: Parallel[F]
-  ): F[(Set[Role], Permission, Permission)] = {
+  ): F[(Set[Role], Permission)] =
     (
       user.permissionsIn(GlobalScope),
-      user.toMaybeOrganization(ModelView.now(Organization)).semiflatMap(user.permissionsIn(_)).value,
       user.globalRoles.allFromParent
-    ).parMapN { (userPerms, orgaPerms, globalRoles) =>
-      (globalRoles.map(_.toRole).toSet, userPerms, orgaPerms.getOrElse(Permission.None))
-    }
-  }
+    ).parMapN((userPerms, globalRoles) => (globalRoles.map(_.toRole).toSet, userPerms))
 }

@@ -1,6 +1,6 @@
 package ore.db.impl.schema
 
-import java.time.{Instant, OffsetDateTime}
+import java.time.OffsetDateTime
 
 import ore.db.impl.OrePostgresDriver.api._
 import ore.db.{DbRef, Model, ObjId, ObjOffsetDateTime}

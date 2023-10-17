@@ -1,0 +1,22 @@
+[[mods]]
+modId = "basic_test"
+displayName = "Basic"
+version = "1.0.0"
+
+[[dependencies.basic_test]]
+modId = "foo"
+versionRange = "1.1.0"
+
+[[dependencies.basic_test]]
+modId = "bar"
+versionRange = "1.2.0"
+
+[[dependencies.basic_test]]
+modId = "baz"
+versionRange = "1.3.0"
+mandatory = true
+
+[[dependencies.basic_test]]
+modId = "bin"
+versionRange = "2.0.0"
+mandatory = true

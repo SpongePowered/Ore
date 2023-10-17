@@ -1,11 +1,11 @@
 package ore.db.impl.service
 
-import ore.db.{Model, ModelCompanion, ModelQuery, ModelService}
 import ore.db.impl.OrePostgresDriver
+import ore.db.{Model, ModelCompanion, ModelQuery, ModelService}
 
 import cats.effect.{Clock, Sync}
-import doobie.{ConnectionIO, Transactor}
 import doobie.syntax.all._
+import doobie.{ConnectionIO, Transactor}
 import slick.dbio.DBIO
 import slick.lifted.Rep
 import zio.interop.catz._

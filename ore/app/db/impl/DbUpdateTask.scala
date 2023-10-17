@@ -10,12 +10,12 @@ import ore.util.OreMDC
 
 import cats.syntax.all._
 import com.typesafe.scalalogging
+import doobie.implicits._
 import zio.clock.Clock
 import zio._
 
 class DbUpdateTask(config: OreConfig, lifecycle: ApplicationLifecycle, runtime: zio.Runtime[Clock])(
-    implicit projects: ProjectBase[Task],
-    service: ModelService[Task]
+    implicit service: ModelService[Task]
 ) {
 
   val interval: duration.Duration = duration.Duration.fromScala(config.ore.homepage.updateInterval)
@@ -25,7 +25,7 @@ class DbUpdateTask(config: OreConfig, lifecycle: ApplicationLifecycle, runtime: 
 
   Logger.info("DbUpdateTask starting")
 
-  private val homepageSchedule: Schedule[Any, Unit, Unit] =
+  private val materializedViewsSchedule: Schedule[Any, Unit, Unit] =
     Schedule
       .fixed(interval)
       .unit
@@ -43,7 +43,14 @@ class DbUpdateTask(config: OreConfig, lifecycle: ApplicationLifecycle, runtime: 
     runtime.unsafeRunToFuture(safeTask.repeat(schedule))
   }
 
-  private val homepageTask = runningTask(projects.refreshHomePage(Logger), homepageSchedule)
+  private val materializedViewsTask = runningTask(
+    service.runDbCon(
+      sql"SELECT refreshProjectStats()"
+        .query[Option[Int]]
+        .unique *> sql"REFRESH MATERIALIZED VIEW promoted_versions".update.run.void
+    ),
+    materializedViewsSchedule
+  )
 
   private def runMany(updates: Seq[doobie.Update0]) =
     service.runDbCon(updates.toList.traverse_(_.run))
@@ -54,6 +61,6 @@ class DbUpdateTask(config: OreConfig, lifecycle: ApplicationLifecycle, runtime: 
     statSchedule
   )
 
-  lifecycle.addStopHook(() => homepageTask.cancel())
+  lifecycle.addStopHook(() => materializedViewsTask.cancel())
   lifecycle.addStopHook(() => statsTask.cancel())
 }

@@ -1,8 +1,9 @@
+@import controllers.sugar.Calls
 @import controllers.sugar.Requests.OreRequest
 @import models.querymodels.UnhealtyProject
 @import ore.OreConfig
-@import ore.models.project.{Project, Version}
 @import ore.models.Job
+@import ore.models.project.{Project, Version}
 @(noTopicProjects: Seq[UnhealtyProject],
   staleProjects: Seq[UnhealtyProject],
   notPublicProjects: Seq[UnhealtyProject],
@@ -10,7 +11,6 @@
   erroredJobs: Seq[Job])(implicit request: OreRequest[_], messages: Messages, config: OreConfig, flash: Flash, assetsFinder: AssetsFinder)
 
 @projectRoutes = @{controllers.project.routes.Projects}
-@versionRoutes = @{controllers.project.routes.Versions}
 
 @layout.base(messages("admin.health.title")) {
 
@@ -36,7 +36,7 @@
                 <div class="panel-body list-group list-group-health">
                 @noTopicProjects.map { project =>
                     <div class="list-group-item">
-                        <a class="pull-left" href="@projectRoutes.show(project.namespace.ownerName, project.namespace.slug)">
+                        <a class="pull-left" href="@projectRoutes.show(project.namespace.ownerName, project.namespace.slug, "")">
                             <strong>@project.namespace</strong>
                         </a>
                         <div class="clearfix"></div>
@@ -70,7 +70,7 @@
                 <div class="panel-body list-group list-group-health">
                 @staleProjects.map { project =>
                     <div class="list-group-item">
-                        <a href="@projectRoutes.show(project.namespace.ownerName, project.namespace.slug)">
+                        <a href="@projectRoutes.show(project.namespace.ownerName, project.namespace.slug, "")">
                             <strong>@project.namespace</strong>
                         </a>
                     </div>
@@ -86,7 +86,7 @@
                 <div class="panel-body list-group list-group-health">
                 @notPublicProjects.map { project =>
                     <div class="list-group-item">
-                        <a href="@projectRoutes.show(project.namespace.ownerName, project.namespace.slug)">
+                        <a href="@projectRoutes.show(project.namespace.ownerName, project.namespace.slug, "")">
                             <strong>@project.namespace</strong> <small>@messages("visibility.name." + project.visibility.nameKey)</small>
                         </a>
                     </div>
@@ -114,7 +114,7 @@
                 <div class="panel-body list-group list-group-health">
                 @missingFileProjects.map { case (version, project) =>
                 <div class="list-group-item">
-                    <a href="@versionRoutes.show(project.ownerName, project.slug, version.name)">
+                    <a href="@Calls.showVersion(project.ownerName, project.slug, version.name)">
                         <strong>@project.namespace/@version.name</strong>
                 </a>
                 </div>

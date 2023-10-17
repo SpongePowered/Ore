@@ -11,8 +11,9 @@ import play.api.mvc.RequestHeader
 import models.protocols.APIV2
 import ore.OreConfig
 import ore.data.project.{Category, ProjectNamespace}
+import ore.models.project.Version.{ReleaseType, Stability}
 import ore.models.project.io.ProjectFiles
-import ore.models.project.{ReviewState, TagColor, Visibility}
+import ore.models.project.{ReviewState, Visibility}
 import ore.models.user.User
 import ore.permission.role.Role
 import util.syntax._
@@ -40,8 +41,11 @@ case class APIV2QueryProject(
     description: Option[String],
     lastUpdated: OffsetDateTime,
     visibility: Visibility,
+    topicId: Option[Int],
+    postId: Option[Int],
     userStarred: Boolean,
     userWatching: Boolean,
+    keywords: List[String],
     homepage: Option[String],
     issues: Option[String],
     sources: Option[String],
@@ -92,6 +96,7 @@ case class APIV2QueryProject(
           userWatching
         ),
         APIV2.ProjectSettings(
+          keywords,
           homepage,
           issues,
           sources,
@@ -99,7 +104,13 @@ case class APIV2QueryProject(
           APIV2.ProjectLicense(licenseName, licenseUrl),
           forumSync
         ),
-        iconUrl
+        iconUrl,
+        APIV2.ProjectExternal(
+          APIV2.ProjectExternalDiscourse(
+            topicId,
+            postId
+          )
+        )
       )
     }
   }
@@ -119,85 +130,77 @@ object APIV2QueryProject {
         val cursor = json.hcursor
 
         for {
-          version <- cursor.get[String]("version_string")
-          tagName <- cursor.get[String]("tag_name")
-          data    <- cursor.get[Option[String]]("tag_version")
-          color <- cursor
-            .get[Int]("tag_color")
-            .flatMap { i =>
-              TagColor
-                .withValueOpt(i)
-                .toRight(DecodingFailure(s"Invalid TagColor $i", cursor.downField("tag_color").history))
-            }
-        } yield {
-
-          val displayAndMc = data.map { rawData =>
-            lazy val lowerBoundVersion = for {
-              range <- Try(VersionRange.createFromVersionSpec(rawData)).toOption
-              version <- Option(range.getRecommendedVersion)
-                .orElse(range.getRestrictions.asScala.flatMap(r => Option(r.getLowerBound)).toVector.minimumOption)
-            } yield version
-
-            lazy val lowerBoundVersionStr = lowerBoundVersion.map(_.toString)
-
-            def unzipOptions[A, B](fab: Option[(A, B)]): (Option[A], Option[B]) = fab match {
-              case Some((a, b)) => Some(a) -> Some(b)
-              case None         => (None, None)
-            }
-
-            tagName match {
-              case "Sponge" =>
-                lowerBoundVersionStr.collect {
-                  case MajorMinor(version) => version
-                } -> None //TODO
-              case "SpongeForge" =>
-                unzipOptions(
-                  lowerBoundVersionStr.collect {
-                    case SpongeForgeMajorMinorMC(version, mcVersion) => version -> mcVersion
-                  }
-                )
-              case "SpongeVanilla" =>
-                unzipOptions(
-                  lowerBoundVersionStr.collect {
-                    case SpongeVanillaMajorMinorMC(version, mcVersion) => version -> mcVersion
-                  }
-                )
-              case "Forge" =>
-                lowerBoundVersion.flatMap {
-                  //This will crash and burn if the implementation becomes
-                  //something else, but better that, than failing silently
-                  case version: DefaultArtifactVersion =>
-                    if (BigInt(version.version.getFirstInteger) >= 28) {
-                      Some(version.toString) //Not sure what we really want to do here
-                    } else {
-                      version.toString match {
-                        case OldForgeVersion(version) => Some(version)
-                        case _                        => None
-                      }
-                    }
-                } -> None //TODO
-              case _ => None -> None
-            }
+          version         <- cursor.get[String]("version_string")
+          platform        <- cursor.get[List[String]]("platforms")
+          platformVersion <- cursor.get[List[Option[String]]]("platform_versions")
+        } yield APIV2.PromotedVersion(
+          version,
+          platform.zip(platformVersion).map {
+            case (platform, platformVersion) => decodeVersionPlatform(platform, platformVersion)
           }
-
-          APIV2.PromotedVersion(
-            version,
-            Seq(
-              APIV2.PromotedVersionTag(
-                tagName,
-                data,
-                displayAndMc.flatMap(_._1),
-                displayAndMc.flatMap(_._2),
-                APIV2.VersionTagColor(
-                  color.foreground,
-                  color.background
-                )
-              )
-            )
-          )
-        }
+        )
       }
     } yield res
+
+  def decodeVersionPlatform(platform: String, platformVersion: Option[String]): APIV2.VersionPlatform = {
+    //TODO: Cleanup this in the DB so we don't need to deal with it
+    val displayAndMc = platformVersion.filterNot(_ == "null").map { rawData =>
+      lazy val lowerBoundVersion = for {
+        range <- Try(VersionRange.createFromVersionSpec(rawData)).toOption
+        version <- Option(range.getRecommendedVersion)
+          .orElse(range.getRestrictions.asScala.flatMap(r => Option(r.getLowerBound)).toVector.minimumOption)
+      } yield version
+
+      lazy val lowerBoundVersionStr = lowerBoundVersion.map(_.toString)
+
+      def unzipOptions[A, B](fab: Option[(A, B)]): (Option[A], Option[B]) = fab match {
+        case Some((a, b)) => Some(a) -> Some(b)
+        case None         => (None, None)
+      }
+
+      //TODO: Move this to the platforms object
+      platform match {
+        case "spongeapi" =>
+          lowerBoundVersionStr.collect {
+            case MajorMinor(version) => version
+          } -> None //TODO
+        case "spongeforge" =>
+          unzipOptions(
+            lowerBoundVersionStr.collect {
+              case SpongeForgeMajorMinorMC(version, mcVersion) => version -> mcVersion
+            }
+          )
+        case "spongevanilla" =>
+          unzipOptions(
+            lowerBoundVersionStr.collect {
+              case SpongeVanillaMajorMinorMC(version, mcVersion) => version -> mcVersion
+            }
+          )
+        case "forge" =>
+          lowerBoundVersion.flatMap {
+            //This will crash and burn if the implementation becomes
+            //something else, but better that, than failing silently
+            case version: DefaultArtifactVersion =>
+              if (BigInt(version.version.getFirstInteger) >= 28) {
+                Some(version.toString) //Not sure what we really want to do here
+              } else {
+                version.toString match {
+                  case OldForgeVersion(version) => Some(version)
+                  case _                        => None
+                }
+              }
+          } -> None //TODO
+        case _ => None -> None
+      }
+    }
+
+    APIV2.VersionPlatform(
+      platform,
+      platformVersion.filterNot(_ == "null"),
+      displayAndMc.flatMap(_._1),
+      displayAndMc.flatMap(_._2)
+    )
+  }
 }
 
 case class APIV2QueryCompactProject(
@@ -238,20 +241,21 @@ case class APIV2QueryCompactProject(
     }
 }
 
-case class APIV2QueryProjectMember(
+case class APIV2QueryMember(
     user: String,
-    roles: List[Role]
+    role: Role,
+    isAccepted: Boolean
 ) {
 
-  def asProtocol: APIV2.ProjectMember = APIV2.ProjectMember(
+  def asProtocol: APIV2.Member = APIV2.Member(
     user,
-    roles.map { role =>
-      APIV2.Role(
-        role.value,
-        role.title,
-        role.color.hex
-      )
-    }
+    APIV2.Role(
+      role,
+      role.title,
+      role.color.hex,
+      role.permissions.toNamedSeq.toList,
+      isAccepted
+    )
   )
 }
 
@@ -259,49 +263,48 @@ case class APIV2QueryVersion(
     createdAt: OffsetDateTime,
     name: String,
     dependenciesIds: List[String],
+    dependenciesVersions: List[Option[String]],
     visibility: Visibility,
-    description: Option[String],
     downloads: Long,
     fileSize: Long,
     md5Hash: String,
     fileName: String,
     authorName: Option[String],
     reviewState: ReviewState,
-    tags: List[APIV2QueryVersionTag]
+    mixin: Boolean,
+    stability: Stability,
+    releaseType: Option[ReleaseType],
+    platforms: List[String],
+    platformVersions: List[Option[String]],
+    postId: Option[Int]
 ) {
 
   def asProtocol: APIV2.Version = APIV2.Version(
     createdAt,
     name,
-    dependenciesIds.map { depId =>
-      val data = depId.split(":")
-      APIV2.VersionDependency(
-        data(0),
-        data.lift(1)
-      )
+    dependenciesIds.zip(dependenciesVersions).map {
+      case (id, Some("null"))  => APIV2.VersionDependency(id, None)
+      case (id, Some(version)) => APIV2.VersionDependency(id, Some(version))
+      case (id, None)          => APIV2.VersionDependency(id, None)
     },
     visibility,
-    description,
     APIV2.VersionStatsAll(downloads),
-    APIV2.FileInfo(name, fileSize, md5Hash),
+    APIV2.FileInfo(fileName, fileSize, md5Hash),
     authorName,
     reviewState,
-    tags.map(_.asProtocol)
-  )
-}
-
-case class APIV2QueryVersionTag(
-    name: String,
-    data: Option[String],
-    color: TagColor
-) {
-
-  def asProtocol: APIV2.VersionTag = APIV2.VersionTag(
-    name,
-    data,
-    APIV2.VersionTagColor(
-      color.foreground,
-      color.background
+    APIV2.VersionTags(
+      mixin,
+      stability,
+      releaseType,
+      platforms.zip(platformVersions).map {
+        case (platform, platformVersion) =>
+          APIV2QueryProject.decodeVersionPlatform(platform, platformVersion)
+      }
+    ),
+    APIV2.VersionExternal(
+      APIV2.VersionExternalDiscourse(
+        postId
+      )
     )
   )
 }
@@ -311,6 +314,7 @@ case class APIV2QueryUser(
     name: String,
     tagline: Option[String],
     joinDate: Option[OffsetDateTime],
+    projectCount: Long,
     roles: List[Role]
 ) {
 
@@ -319,13 +323,68 @@ case class APIV2QueryUser(
     name,
     tagline,
     joinDate,
+    projectCount,
     roles.map { role =>
       APIV2.Role(
-        role.value,
+        role,
         role.title,
-        role.color.hex
+        role.color.hex,
+        role.permissions.toNamedSeq.toList,
+        isAccepted = true
       )
     }
+  )
+}
+
+case class APIV2QueryOrganization(
+    owner: String,
+    createdAt: OffsetDateTime,
+    name: String,
+    tagline: Option[String],
+    joinDate: Option[OffsetDateTime],
+    projectCount: Long,
+    roles: List[Role]
+) {
+
+  def asProtocol: APIV2.Organization = APIV2.Organization(
+    owner,
+    APIV2.User(
+      createdAt,
+      name,
+      tagline,
+      joinDate,
+      projectCount,
+      roles.map { role =>
+        APIV2.Role(
+          role,
+          role.title,
+          role.color.hex,
+          role.permissions.toNamedSeq.toList,
+          isAccepted = true
+        )
+      }
+    )
+  )
+}
+
+case class APIV2QueryMembership(
+    scope: String,
+    organization: Option[String],
+    pluginId: Option[String],
+    ownerName: Option[String],
+    slug: Option[String],
+    role: Role,
+    isAccepted: Boolean
+) {
+
+  def asProtocol: APIV2.Membership = APIV2.Membership(
+    scope,
+    organization.map(APIV2.MembershipOrganization.apply),
+    pluginId
+      .zip(ownerName.zip(slug).map((APIV2.ProjectNamespace.apply _).tupled))
+      .map((APIV2.MembershipProject.apply _).tupled),
+    role,
+    isAccepted
   )
 }
 

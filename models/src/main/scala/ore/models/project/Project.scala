@@ -16,21 +16,19 @@ import ore.member.{Joinable, MembershipDossier}
 import ore.models.admin.ProjectVisibilityChange
 import ore.models.api.ProjectApiKey
 import ore.models.project.Project.ProjectSettings
-import ore.models.statistic.ProjectView
 import ore.models.user.role.ProjectUserRole
 import ore.models.user.{User, UserOwned}
 import ore.permission.role.Role
 import ore.permission.scope.HasScope
 import ore.syntax._
-import ore.util.StringLocaleFormatterUtils
+import ore.util.{StringLocaleFormatterUtils, StringUtils}
 
 import cats.syntax.all._
 import cats.{Functor, Monad, MonadError, Parallel}
 import io.circe.Json
 import io.circe.generic.JsonCodec
 import io.circe.syntax._
-import slick.lifted
-import slick.lifted.{Rep, TableQuery}
+import slick.lifted.TableQuery
 
 /**
   * Represents an Ore package.
@@ -41,11 +39,8 @@ import slick.lifted.{Rep, TableQuery}
   * @param ownerName              The owner Author for this project
   * @param ownerId                User ID of Project owner
   * @param name                   Name of plugin
-  * @param slug                   URL slug
-  * @param recommendedVersionId   The ID of this project's recommended version
   * @param topicId                ID of forum topic
   * @param postId                 ID of forum topic post ID
-  * @param isTopicDirty           Whether this project's forum topic needs to be updated
   * @param visibility             Whether this project is visible to the default user
   * @param notes                  JSON notes
   */
@@ -54,8 +49,6 @@ case class Project(
     ownerName: String,
     ownerId: DbRef[User],
     name: String,
-    slug: String,
-    recommendedVersionId: Option[DbRef[Version]] = None,
     category: Category = Category.Undefined,
     description: Option[String],
     topicId: Option[Int] = None,
@@ -66,6 +59,8 @@ case class Project(
 ) extends Named
     with Describable
     with Visitable {
+
+  val slug: String = StringUtils.slugify(name)
 
   def namespace: ProjectNamespace = ProjectNamespace(ownerName, slug)
 
@@ -113,16 +108,6 @@ object Project extends DefaultModelCompanion[Project, ProjectTable](TableQuery[P
     AssociationQuery.from[ProjectWatchersTable, Project, User](TableQuery[ProjectWatchersTable])(_.projectId, _.userId)
 
   implicit val hasScope: HasScope[Model[Project]] = HasScope.projectScope(_.id)
-
-  private def queryRoleForTrust(projectId: Rep[DbRef[Project]], userId: Rep[DbRef[User]]) = {
-    val q = for {
-      m <- TableQuery[ProjectMembersTable] if m.projectId === projectId && m.userId === userId
-      r <- TableQuery[ProjectRoleTable] if m.userId === r.userId && r.projectId === projectId
-    } yield r.roleType
-    q.to[Set]
-  }
-
-  lazy val roleForTrustQuery = lifted.Compiled(queryRoleForTrust _)
 
   implicit def projectHideable[F[_]](
       implicit service: ModelService[F],
@@ -201,13 +186,13 @@ object Project extends DefaultModelCompanion[Project, ProjectTable](TableQuery[P
           .now(User)
           .get(newOwner)
           .getOrElseF(F.raiseError(new Exception("Could not find user to transfer owner to")))
-        t2 <- (this.memberships.getRoles(m)(oldOwner), this.memberships.getRoles(m)(newOwner)).parTupled
+        t2 <- (this.memberships.getMembership(m)(oldOwner), this.memberships.getMembership(m)(newOwner)).parTupled
         (ownerRoles, userRoles) = t2
         setOwner <- setOwner(m)(newOwnerUser)
         _ <- ownerRoles
           .filter(_.role == Role.ProjectOwner)
           .toVector
-          .parTraverse(role => service.update(role)(_.copy(role = Role.ProjectDeveloper)))
+          .parTraverse(role => service.update(role)(_.copy(role = Role.ProjectAdmin)))
         _ <- userRoles.toVector.parTraverse(role => service.update(role)(_.copy(role = Role.ProjectOwner)))
       } yield setOwner
     }
@@ -253,16 +238,6 @@ object Project extends DefaultModelCompanion[Project, ProjectTable](TableQuery[P
       ).applyChild(self.id)
 
     /**
-      * Returns this Project's recommended version.
-      *
-      * @return Recommended version
-      */
-    def recommendedVersion[QOptRet, SRet[_]](
-        view: ModelView[QOptRet, SRet, VersionTable, Model[Version]]
-    ): Option[QOptRet] =
-      self.recommendedVersionId.map(versions(view).get)
-
-    /**
       * Sets the "starred" state of this Project for the specified User.
       *
       * @param user User to set starred state of
@@ -299,14 +274,6 @@ object Project extends DefaultModelCompanion[Project, ProjectTable](TableQuery[P
       require(userId != self.ownerId, "cannot flag own project")
       service.insert(Flag(self.id, user.id, reason, comment))
     }
-
-    /**
-      * Returns the Channels in this Project.
-      *
-      * @return Channels in project
-      */
-    def channels[V[_, _]: QueryView](view: V[ChannelTable, Model[Channel]]): V[ChannelTable, Model[Channel]] =
-      view.filterView(_.projectId === self.id.value)
 
     /**
       * Returns all versions in this project.

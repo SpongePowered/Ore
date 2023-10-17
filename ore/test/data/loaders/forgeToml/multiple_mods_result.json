@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Mod 1",
+    "identifier": "mod1",
+    "version": "1.0.0",
+    "dependencies": [
+      {
+        "identifier": "foo_mod1",
+        "rawVersion": "1.1.0",
+        "required": false
+      },
+      {
+        "identifier": "bar_mod1",
+        "rawVersion": "1.2.0",
+        "required": false
+      },
+      {
+        "identifier": "baz_mod1",
+        "rawVersion": "1.3.0",
+        "required": true
+      },
+      {
+        "identifier": "bin_mod1",
+        "rawVersion": "2.0.0",
+        "required": true
+      }
+    ],
+    "mixin": false
+  },
+  {
+    "name": "Mod 2",
+    "identifier": "mod2",
+    "version": "2.1.0",
+    "dependencies": [
+      {
+        "identifier": "foo_mod2",
+        "rawVersion": "3.0.0",
+        "required": false
+      },
+      {
+        "identifier": "bar_mod2",
+        "rawVersion": "3.1.0",
+        "required": false
+      },
+      {
+        "identifier": "baz_mod2",
+        "rawVersion": "3.2.0",
+        "required": true
+      },
+      {
+        "identifier": "bin_mod2",
+        "rawVersion": "4.0.0",
+        "required": true
+      }
+    ],
+    "mixin": false
+  }
+]

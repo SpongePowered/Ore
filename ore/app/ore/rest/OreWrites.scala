@@ -30,18 +30,8 @@ trait OreWrites {
       "slug"      -> page.slug
     )
 
-  implicit val channelWrites: Writes[Channel] = (channel: Channel) =>
-    obj("name" -> channel.name, "color" -> channel.color.hex, "nonReviewed" -> channel.isNonReviewed)
-
-  implicit val tagWrites: Writes[Model[VersionTag]] = (tag: Model[VersionTag]) => {
-    obj(
-      "id"              -> tag.id.value,
-      "name"            -> tag.name,
-      "data"            -> tag.data,
-      "backgroundColor" -> tag.color.background,
-      "foregroundColor" -> tag.color.foreground
-    )
-  }
+  implicit val channelWrites: Writes[FakeChannel] = (channel: FakeChannel) =>
+    obj("name" -> channel.name, "color" -> channel.color.background, "nonReviewed" -> channel.isNonReviewed)
 
   implicit val tagColorWrites: Writes[TagColor] = (tagColor: TagColor) => {
     obj(

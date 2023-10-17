@@ -111,14 +111,27 @@ object Role extends StringEnum[Role] {
         RoleCategory.Project,
         Perm(
           Perm.IsProjectOwner,
-          Perm.EditApiKeys,
           Perm.DeleteProject,
-          Perm.DeleteVersion,
-          ProjectDeveloper.permissions
+          ProjectAdmin.permissions
         ),
         "Owner",
         Transparent,
         isAssignable = false
+      )
+  object ProjectAdmin
+      extends Role(
+        "Project_Admin",
+        29,
+        RoleCategory.Project,
+        Perm(
+          Perm.EditProjectSettings,
+          Perm.ManageProjectMembers,
+          Perm.EditApiKeys,
+          Perm.DeleteVersion,
+          ProjectDeveloper.permissions
+        ),
+        "Admin",
+        Transparent
       )
   object ProjectDeveloper
       extends Role(

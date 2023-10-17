@@ -17,13 +17,11 @@ class StatTrackerQueriesSpec extends DbSpec {
     check(StatTrackerQueries.addProjectView(0L, InetString("::1"), "foobar", None))
   }
 
-  /* Inspection doesn't work well with VOID type
-  test("ProcessVersionDownloads") {
-    check(StatTrackerQueries.processVersionDownloads)
+  test("findVersionDownloadCookie") {
+    check(StatTrackerQueries.findVersionDownloadCookie(InetString("::1"), Some(0L)))
   }
 
-  test("ProcessProjectViews") {
-    check(StatTrackerQueries.processProjectViews)
+  test("findProjectViewCookie") {
+    check(StatTrackerQueries.findProjectViewCookie(InetString("::1"), Some(0L)))
   }
- */
 }

@@ -4,12 +4,13 @@ import java.time.OffsetDateTime
 
 import db.impl.access.UserBase.UserOrdering
 import ore.OreConfig
+import ore.db.impl.query.DoobieOreProtocol
 import ore.permission.role.Role
 
 import doobie._
 import doobie.implicits._
 
-object UserPagesQueries extends WebDoobieOreProtocol {
+object UserPagesQueries extends DoobieOreProtocol {
 
   private def userFragOrder(reverse: Boolean, sortStr: String) = {
     val sort = if (reverse) fr"ASC" else fr"DESC"

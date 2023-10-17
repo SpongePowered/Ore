@@ -1,0 +1,16 @@
+{
+  "config": "../../../conf/loaders/forgeToml.conf",
+  "commonName": "forgeToml",
+  "tests": [
+    {
+      "name": "basic",
+      "file": "forgeToml/basic.toml",
+      "result": "forgeToml/basic_result.json"
+    },
+    {
+      "name": "multiple mods",
+      "file": "forgeToml/multiple_mods.toml",
+      "result": "forgeToml/multiple_mods_result.json"
+    }
+  ]
+}

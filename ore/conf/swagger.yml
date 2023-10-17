@@ -77,24 +77,10 @@ components:
           description: >-
             The version description to post on both the version,
             and the forum post.
-        tags:
-          type: object
-          additionalProperties:
-            oneOf:
-              - type: string
-              - type: array
-                items:
-                  type: string
-                minItems: 1
-                uniqueItems: true
-          description: >-
-            Override the default for the tags specified here. If nothing is
-            specified for a tag, Ore will try to infer what it should be
-            instead.
-
-            Most tags only allow one value, but a few allow multiple.
-            In cases where multiple values are specified for a tag that only
-            allows a single, the first one will be used.
+        stability:
+          $ref: '#/components/schemas/Stability'
+        release_type:
+          $ref: '#/components/schemas/ReleaseType'
     NamedPermission:
       type: string
       enum:
@@ -138,6 +124,34 @@ components:
         - role_playing
         - world_management
         - misc
+    Visibility:
+      type: string
+      enum:
+        - public
+        - new
+        - needsChanges
+        - needsApproval
+        - softDelete
+    ReviewState:
+      type: string
+      enum:
+        - unreviewed
+        - reviewed
+        - backlog
+        - partially_reviewed
+    ApiScopeType:
+      type: string
+      enum:
+        - global
+        - project
+        - organization
+    SessionType:
+      type: string
+      enum:
+        - key
+        - user
+        - public
+        - dev
     ProjectSortingStrategy:
       type: string
       enum:
@@ -149,68 +163,159 @@ components:
         - only_relevance
         - recent_downloads
         - recent_views
+    Stability:
+      type: string
+      enum:
+        - recommended
+        - stable
+        - beta
+        - alpha
+        - bleeding
+        - unsupported
+        - broken
+    ReleaseType:
+      type: string
+      enum:
+        - major_update
+        - minor_update
+        - patches
+        - hotfix
+    Role:
+      type: string
+      enum:
+        - Ore_Admin
+        - Ore_Mod
+        - Sponge_Leader
+        - Team_Leader
+        - Community_Leader
+        - Sponge_Staff
+        - Sponge_Developer
+        - Ore_Dev
+        - Web_Dev
+        - Documenter
+        - Support
+        - Contributor
+        - Advisor
+        - Stone_Donor
+        - Quartz_Donor
+        - Iron_Donor
+        - Gold_Donor
+        - Diamond_Donor
+        - Project_Owner
+        - Project_Admin
+        - Project_Developer
+        - Project_Editor
+        - Project_Support
+        - Organization
+        - Organization_Owner
+        - Organization_Admin
+        - Organization_Developer
+        - Organization_Editor
+        - Organization_Support
+    UserSortingStrategy:
+      type: string
+      enum:
+        - name
+        - join_date
+        - project_count
+    models.protocols.APIV2.VersionExternal:
+      title: VersionExternal
+    models.protocols.APIV2.PageListEntry:
+      title: PageListEntry
+    models.protocols.APIV2.ProjectLicense:
+      title: ProjectLicense
+    models.protocols.APIV2.VersionTags:
+      title: VersionTags
+    controllers.apiv2.Users.PaginatedUserResult:
+      title: PaginatedUserResult
+    models.protocols.APIV2.Organization:
+      title: Organization
+    models.protocols.APIV2.CompactProject:
+      title: CompactProject
+    controllers.apiv2.helpers.Pagination:
+      title: Pagination
+    models.protocols.APIV2.Membership:
+      title: Membership
+    models.protocols.APIV2.UserActions:
+      title: UserActions
+    models.protocols.APIV2.User:
+      title: User
+    models.protocols.APIV2.MembershipProject:
+      title: MembershipProject
+    models.protocols.APIV2.VersionPlatform:
+      title: VersionPlatform
+    models.protocols.APIV2.PageList:
+      title: PageList
+    controllers.apiv2.Keys.CreatedApiKey:
+      title: CreatedApiKey
+    models.protocols.APIV2.ProjectNamespace:
+      title: ProjectNamespace
+    models.protocols.APIV2.FileInfo:
+      title: FileInfo
+    controllers.apiv2.Permissions.KeyPermissions:
+      title: KeyPermissions
+    models.protocols.APIV2.VersionStatsDay:
+      title: VersionStatsDay
+    controllers.apiv2.Authentication.ReturnedApiSession:
+      title: ReturnedApiSession
+    models.protocols.APIV2.Member:
+      title: Member
+    controllers.apiv2.Keys.KeyToCreate:
+      title: KeyToCreate
+    models.protocols.APIV2.ProjectExternalDiscourse:
+      title: ProjectExternalDiscourse
+    controllers.apiv2.Projects.PaginatedProjectResult:
+      title: PaginatedProjectResult
+    models.protocols.APIV2.VersionStatsAll:
+      title: VersionStatsAll
     models.protocols.APIV2.Project:
       title: Project
     models.protocols.APIV2.Role:
       title: Role
-    models.protocols.APIV2.ProjectLicense:
-      title: ProjectLicense
-    controllers.apiv2.ApiV2Controller.CreatedApiKey:
-      title: CreatedApiKey
-    controllers.apiv2.ApiV2Controller.PermissionCheck:
+    controllers.apiv2.helpers.Members.MemberUpdate:
+      title: MemberUpdate
+    controllers.apiv2.Versions.PaginatedVersionResult:
+      title: PaginatedVersionResult
+    controllers.apiv2.Versions.SimplePlatform:
+      title: SimplePlatform
+    models.protocols.APIV2.VersionExternalDiscourse:
+      title: VersionExternalDiscourse
+    controllers.apiv2.Permissions.PermissionCheck:
       title: PermissionCheck
     models.protocols.APIV2.PromotedVersion:
       title: PromotedVersion
-    models.protocols.APIV2.CompactProject:
-      title: CompactProject
-    controllers.apiv2.ApiV2Controller.KeyPermissions:
-      title: KeyPermissions
-    models.protocols.APIV2.UserActions:
-      title: UserActions
-    controllers.apiv2.ApiV2Controller.ApiSessionProperties:
-      title: ApiSessionProperties
-      example:
-        expires_in: 600
-    models.protocols.APIV2.User:
-      title: User
+    models.protocols.APIV2.ProjectExternal:
+      title: ProjectExternal
+    models.protocols.APIV2.VersionChangelog:
+      title: VersionChangelog
+    controllers.apiv2.Projects.ApiV2ProjectTemplate:
+      title: ApiV2ProjectTemplate
+    models.protocols.APIV2.Page:
+      title: Page
     models.protocols.APIV2.VersionDependency:
       title: VersionDependency
     models.protocols.APIV2.ProjectSettings:
       title: ProjectSettings
-    controllers.apiv2.ApiV2Controller.KeyToCreate:
-      title: KeyToCreate
-    controllers.apiv2.ApiV2Controller.PaginatedProjectResult:
-      title: PaginatedProjectResult
     models.protocols.APIV2.ProjectStatsDay:
       title: ProjectStatsDay
-    controllers.apiv2.ApiV2Controller.PaginatedCompactProjectResult:
-      title: PaginatedCompactProjectResult
-    controllers.apiv2.ApiV2Controller.Pagination:
-      title: Pagination
-    models.protocols.APIV2.VersionTag:
-      title: VersionTag
-    controllers.apiv2.ApiV2Controller.PaginatedVersionResult:
-      title: PaginatedVersionResult
-    models.protocols.APIV2.ProjectNamespace:
-      title: ProjectNamespace
-    controllers.apiv2.ApiV2Controller.ReturnedApiSession:
-      title: ReturnedApiSession
-    models.protocols.APIV2.FileInfo:
-      title: FileInfo
-    models.protocols.APIV2.VersionStatsDay:
-      title: VersionStatsDay
+    controllers.apiv2.Projects.DiscourseModifyTopicSettings:
+      title: DiscourseModifyTopicSettings
+    controllers.apiv2.helpers.EditVisibility:
+      title: DiscourseModifyTopicSettings
     models.protocols.APIV2.ProjectStatsAll:
       title: ProjectStatsAll
+    controllers.apiv2.Users.PaginatedCompactProjectResult:
+      title: PaginatedCompactProjectResult
     models.protocols.APIV2.Version:
       title: Version
-    models.protocols.APIV2.VersionTagColor:
-      title: VersionTagColor
-    models.protocols.APIV2.ProjectMember:
-      title: ProjectMember
-    models.protocols.APIV2.PromotedVersionTag:
-      title: PromotedVersionTag
-    models.protocols.APIV2.VersionStatsAll:
-      title: VersionStatsAll
+    controllers.apiv2.Versions.DiscourseModifyPostSettings:
+      title: DiscourseModifyPostSettings
+    controllers.apiv2.Authentication.ApiSessionProperties:
+      title: ApiSessionProperties
+      example:
+        expires_in: 600
+    models.protocols.APIV2.MembershipOrganization:
+      title: MembershipOrganization
   securitySchemes:
     Session:
       type: http

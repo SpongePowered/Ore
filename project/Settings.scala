@@ -8,7 +8,7 @@ import sbt._
 
 object Settings {
 
-  val scalaVer = "2.13.6"
+  val scalaVer = "2.13.12"
 
   val commonSettings = Seq(
     version := "2.0.0-M2.10",
@@ -49,7 +49,7 @@ object Settings {
       "-Ybackend-parallelism",
       "6"
     ),
-    addCompilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.0").cross(CrossVersion.full)),
+    addCompilerPlugin(("org.typelevel" %% "kind-projector" % "0.13.2").cross(CrossVersion.full)),
     // Disable generation of the API documentation for production builds
     Compile / doc / sources := Seq.empty,
     Compile / packageDoc / publishArtifact := false

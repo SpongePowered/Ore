@@ -20,36 +20,34 @@
     - $ref: '#/components/schemas/Category'
 - type: ore\.models\.project\.Visibility
   specAsParameter:
-    - type: string
-      enum:
-        - public
-        - new
-        - needsChanges
-        - needsApproval
-        - softDelete
+    - $ref: '#/components/schemas/Visibility'
 - type: ore\.models\.project\.ReviewState
   specAsParameter:
-    - type: string
-      enum:
-        - unreviewed
-        - reviewed
-        - backlog
-        - partially_reviewed
+    - $ref: '#/components/schemas/ReviewState'
 - type: controllers\.apiv2\.ApiV2Controller\.APIScopeType
   specAsParameter:
-    - type: string
-      enum:
-        - global
-        - project
-        - organization
-- type: controllers\.apiv2\.ApiV2Controller\.SessionType
+    - $ref: '#/components/schemas/ApiScopeType'
+- type: controllers\.apiv2\.Authentication\.SessionType
   specAsParameter:
-    - type: string
-      enum:
-        - key
-        - user
-        - public
-        - dev
+    - $ref: '#/components/schemas/SessionType'
 - type: ProjectSortingStrategy
   specAsParameter:
     - $ref: '#/components/schemas/ProjectSortingStrategy'
+- type: ore\.models\.project\.version\.stability
+  specAsParameter:
+    - $ref: '#/components/schemas/Stability'
+- type: version\.stability
+  specAsParameter:
+    - $ref: '#/components/schemas/Stability'
+- type: ore\.models\.project\.version\.releasetype
+  specAsParameter:
+    - $ref: '#/components/schemas/ReleaseType'
+- type: version\.releasetype
+  specAsParameter:
+    - $ref: '#/components/schemas/ReleaseType'
+- type: ore\.permission\.role\.role
+  specAsParameter:
+    - $ref: '#/components/schemas/Role'
+- type: controllers\.apiv2\.Users\.UserSortingStrategy
+  specAsParameter:
+    - $ref: '#/components/schemas/UserSortingStrategy'

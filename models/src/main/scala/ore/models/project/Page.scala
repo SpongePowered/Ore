@@ -29,7 +29,7 @@ case class Page private (
     name: String,
     slug: String,
     isDeletable: Boolean,
-    contents: String
+    contents: Option[String]
 ) extends Named {
 
   /**
@@ -56,14 +56,14 @@ object Page extends DefaultModelCompanion[Page, PageTable](TableQuery[PageTable]
   def apply(
       projectId: DbRef[Project],
       name: String,
-      content: String,
+      content: Option[String],
       isDeletable: Boolean,
       parentId: Option[DbRef[Page]]
   ): Page = Page(
     projectId = projectId,
     name = compact(name),
     slug = slugify(name),
-    contents = content.trim,
+    contents = content.map(_.trim),
     isDeletable = isDeletable,
     parentId = parentId
   )

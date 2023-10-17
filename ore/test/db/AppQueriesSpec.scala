@@ -2,10 +2,10 @@ package db
 
 import java.time.LocalDate
 
-import scala.concurrent.duration._
-
-import db.impl.query.{AppQueries, SharedQueries}
+import db.impl.query.AppQueries
 import ore.OreConfig
+import ore.data.project.Category
+import ore.models.project.ProjectSortingStrategy
 
 import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
@@ -17,31 +17,6 @@ class AppQueriesSpec extends DbSpec {
 
   implicit val config: OreConfig = ConfigSource.default.loadOrThrow[OreConfig]
 
-  /* Relies on a view and as such can't test NULL stuff reliably
-  test("GetHomeProjects") {
-    check(
-      AppQueries
-        .getHomeProjects(
-          Some(5),
-          canSeeHidden = false,
-          List("Sponge"),
-          List(Category.Chat),
-          Some("foo"),
-          ProjectSortingStrategy.Default,
-          0,
-          50,
-          orderWithRelevance = true
-        )
-    )
-  }
-   */
-
-  /* Wrong nullness reported
-  test("WatcherStartProject") {
-    check(SharedQueries.watcherStartProject(0L))
-  }
-   */
-
   test("GetQueue") {
     check(AppQueries.getQueue)
   }
@@ -50,9 +25,11 @@ class AppQueriesSpec extends DbSpec {
     check(AppQueries.flags)
   }
 
+  /* Wrong nullness reported
   test("GetUnhealtyProjects") {
     check(AppQueries.getUnhealtyProjects(30.days))
   }
+   */
 
   test("GetErroredJobs") {
     check(AppQueries.erroredJobs)
@@ -87,4 +64,10 @@ class AppQueriesSpec extends DbSpec {
   test("SitemapIndexUsers") {
     check(AppQueries.sitemapIndexUsers)
   }
+
+  /* Legacy stuff. Throws warnings but we don't care too much
+  test("ApiV1IdSearch") {
+    check(AppQueries.apiV1IdSearch(Some("foo"), List(Category.AdminTools), ProjectSortingStrategy.Default, 5, 5))
+  }
+ */
 }

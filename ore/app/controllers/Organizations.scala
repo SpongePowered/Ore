@@ -36,7 +36,7 @@ class Organizations(forms: OreForms)(
     *
     * @return Organization creation panel
     */
-  def showCreator(): Action[AnyContent] = UserLock().asyncF { implicit request =>
+  def showCreator(): Action[AnyContent] = Authenticated.asyncF { implicit request =>
     service
       .runDBIO((request.user.ownedOrganizations(ModelView.later(Organization)).size > this.createLimit).result)
       .map { limitReached =>
@@ -54,15 +54,13 @@ class Organizations(forms: OreForms)(
     * @return Redirect to organization page
     */
   def create(): Action[OrganizationRoleSetBuilder] =
-    UserLock().asyncF(
+    Authenticated.asyncF(
       parse.form(forms.OrganizationCreate, onErrors = FormErrorLocalized(routes.Organizations.showCreator()))
     ) { implicit request =>
       val user     = request.user
       val failCall = routes.Organizations.showCreator()
 
-      if (user.isLocked) {
-        IO.fail(BadRequest)
-      } else if (!this.config.ore.orgs.enabled) {
+      if (!this.config.ore.orgs.enabled) {
         IO.fail(Redirect(failCall).withError("error.org.disabled"))
       } else {
         service
@@ -102,7 +100,7 @@ class Organizations(forms: OreForms)(
           import MembershipDossier._
           status match {
             case STATUS_DECLINE =>
-              role.organization[Task].orDie.flatMap(org => org.memberships.removeRole(org)(role.id)).as(Ok)
+              role.organization[Task].orDie.flatMap(org => org.memberships.removeMember(org)(role.userId)).as(Ok)
             case STATUS_ACCEPT   => service.update(role)(_.copy(isAccepted = true)).as(Ok)
             case STATUS_UNACCEPT => service.update(role)(_.copy(isAccepted = false)).as(Ok)
             case _               => IO.fail(BadRequest)
@@ -117,7 +115,7 @@ class Organizations(forms: OreForms)(
     * @return             Redirect to auth or bad request
     */
   def updateAvatar(organization: String): Action[AnyContent] =
-    AuthedOrganizationAction(organization, requireUnlock = true)
+    AuthedOrganizationAction(organization)
       .andThen(OrganizationPermissionAction(Permission.EditOrganizationSettings))
       .asyncF { implicit request =>
         implicit val lang: Lang = request.lang
@@ -136,7 +134,7 @@ class Organizations(forms: OreForms)(
     * @return             Redirect to Organization page
     */
   def removeMember(organization: String): Action[String] =
-    AuthedOrganizationAction(organization, requireUnlock = true)
+    AuthedOrganizationAction(organization)
       .andThen(OrganizationPermissionAction(Permission.ManageOrganizationMembers))
       .asyncF(parse.form(forms.OrganizationMemberRemove)) { implicit request =>
         val res = for {
@@ -154,7 +152,7 @@ class Organizations(forms: OreForms)(
     * @return             Redirect to Organization page
     */
   def updateMembers(organization: String): Action[OrganizationMembersUpdate] =
-    AuthedOrganizationAction(organization, requireUnlock = true)
+    AuthedOrganizationAction(organization)
       .andThen(OrganizationPermissionAction(Permission.ManageOrganizationMembers))(
         parse.form(forms.OrganizationUpdateMembers)
       )

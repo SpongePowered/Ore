@@ -1,0 +1,58 @@
+[
+  {
+    "name": "Plugin 1",
+    "identifier": "plugin1",
+    "version": "1.0.0",
+    "dependencies": [
+      {
+        "identifier": "foo_plugin1",
+        "rawVersion": "1.1.0",
+        "required": false
+      },
+      {
+        "identifier": "bar_plugin1",
+        "rawVersion": "1.2.0",
+        "required": false
+      },
+      {
+        "identifier": "baz_plugin1",
+        "rawVersion": "1.3.0",
+        "required": true
+      },
+      {
+        "identifier": "bin_plugin1",
+        "rawVersion": "2.0.0",
+        "required": true
+      }
+    ],
+    "mixin": false
+  },
+  {
+    "name": "Plugin 2",
+    "identifier": "plugin2",
+    "version": "2.1.0",
+    "dependencies": [
+      {
+        "identifier": "foo_plugin2",
+        "rawVersion": "3.0.0",
+        "required": false
+      },
+      {
+        "identifier": "bar_plugin2",
+        "rawVersion": "3.1.0",
+        "required": false
+      },
+      {
+        "identifier": "baz_plugin2",
+        "rawVersion": "3.2.0",
+        "required": true
+      },
+      {
+        "identifier": "bin_plugin2",
+        "rawVersion": "4.0.0",
+        "required": true
+      }
+    ],
+    "mixin": false
+  }
+]

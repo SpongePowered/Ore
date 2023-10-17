@@ -42,7 +42,7 @@ case class OrganizationMembersUpdate(
       .build()
       .toVector
       .parTraverse_ { role =>
-        val addRole = dossier.addRole(organization)(role.userId, role.copy(organizationId = orgId))
+        val addRole = dossier.setRole(organization)(role.userId, role.copy(organizationId = orgId))
         val sendNotif = service.insert(
           Notification(
             userId = role.userId,
@@ -56,7 +56,7 @@ case class OrganizationMembersUpdate(
       }
 
     val orgUsersF = organization.memberships
-      .members(organization)
+      .membersIds(organization)
       .flatMap { members =>
         members.toVector.parTraverse { mem =>
           ModelView
@@ -80,7 +80,7 @@ case class OrganizationMembersUpdate(
 
         userMemRole.toVector.parTraverse_ {
           case Some((mem, role)) =>
-            organization.memberships.getRoles(organization)(mem.id).flatMap { roles =>
+            organization.memberships.getMembership(organization)(mem.id).flatMap { roles =>
               roles.toVector.parTraverse_(userRole => service.update(userRole)(_.copy(role = role)))
             }
           case None => F.unit

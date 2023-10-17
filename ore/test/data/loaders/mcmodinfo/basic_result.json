@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Basic",
+    "identifier": "basic_test",
+    "version": "1.0.0",
+    "dependencies": [
+      {
+        "identifier": "foo",
+        "required": false
+      },
+      {
+        "identifier": "bar",
+        "required": false
+      },
+      {
+        "identifier": "baz",
+        "required": true
+      },
+      {
+        "identifier": "bin",
+        "required": true
+      }
+    ],
+    "mixin": false
+  }
+]

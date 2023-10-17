@@ -1,0 +1,28 @@
+[
+  {
+    "modid": "mod1",
+    "name": "Mod 1",
+    "version": "1.0.0",
+    "dependencies": [
+      "foo_mod1@1.1.0",
+      "bar_mod1@1.2.0"
+    ],
+    "requiredMods": [
+      "baz_mod1@1.3.0",
+      "bin_mod1@2.0.0"
+    ]
+  },
+  {
+    "modid": "mod2",
+    "name": "Mod 2",
+    "version": "2.1.0",
+    "dependencies": [
+      "foo_mod2@3.0.0",
+      "bar_mod2@3.1.0"
+    ],
+    "requiredMods": [
+      "baz_mod2@3.2.0",
+      "bin_mod2@4.0.0"
+    ]
+  }
+]

@@ -9,8 +9,8 @@ import scala.jdk.CollectionConverters._
 import ore.OreConfig
 
 import cats.Traverse
-import cats.syntax.all._
 import cats.effect.Resource
+import cats.syntax.all._
 import zio.ZIO
 import zio.blocking._
 import zio.interop.catz._

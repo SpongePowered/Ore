@@ -1,0 +1,17 @@
+[
+  {
+    "modid": "tablist",
+    "name": "TabList",
+    "version": "1.0.2",
+    "description": "An ultimate animated tablist",
+    "authorList": [
+      "montlikadani"
+    ],
+    "dependencies": [
+      "spongeapi@7.2.0"
+    ],
+    "requiredMods": [
+      "spongeapi@7.2.0"
+    ]
+  }
+]

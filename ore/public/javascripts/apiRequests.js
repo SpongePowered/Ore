@@ -13,7 +13,10 @@ function apiV2Request(url, method = "GET", data = {}) {
                 contentType: isFormData ? false : 'application/json',
                 data: isBodyRequest && !isFormData ? JSON.stringify(data) : data,
                 processData: !(isFormData || isBodyRequest),
-                headers: {'Authorization': 'OreApi session=' + session}
+                headers: {
+                    'Authorization': 'OreApi session=' + session,
+                    'Csrf-Token': csrf
+                }
             }).done(function (data) {
                 resolve(data);
             }).fail(function (xhr) {

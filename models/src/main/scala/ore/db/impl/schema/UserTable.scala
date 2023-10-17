@@ -16,7 +16,6 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
 
   def fullName    = column[String]("full_name")
   def email       = column[String]("email")
-  def isLocked    = column[Boolean]("is_locked")
   def tagline     = column[String]("tagline")
   def joinDate    = column[OffsetDateTime]("join_date")
   def readPrompts = column[List[Prompt]]("read_prompts")
@@ -33,11 +32,10 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
             Option[String],
             Option[OffsetDateTime],
             List[Prompt],
-            Boolean,
             Option[Locale]
         )
     ) => Model[User] = {
-      case (id, time, fullName, name, email, tagline, joinDate, prompts, locked, lang) =>
+      case (id, time, fullName, name, email, tagline, joinDate, prompts, lang) =>
         Model(
           ObjId.unsafeFromOption(id),
           ObjOffsetDateTime.unsafeFromOption(time),
@@ -49,7 +47,6 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
             tagline,
             joinDate,
             prompts,
-            locked,
             lang
           )
         )
@@ -65,7 +62,6 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
           Option[String],
           Option[OffsetDateTime],
           List[Prompt],
-          Boolean,
           Option[Locale]
       )
     ] = {
@@ -80,7 +76,6 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
             tagline,
             joinDate,
             readPrompts,
-            isLocked,
             lang
           )
           ) =>
@@ -94,7 +89,6 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
             tagline,
             joinDate,
             readPrompts,
-            isLocked,
             lang
           )
         )
@@ -109,7 +103,6 @@ class UserTable(tag: Tag) extends ModelTable[User](tag, "users") with NameColumn
       tagline.?,
       joinDate.?,
       readPrompts,
-      isLocked,
       lang.?
     ).<>(applyFunc, unapplyFunc)
   }

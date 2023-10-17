@@ -1,7 +1,6 @@
 @*
 The main header displayed on each layout.
 *@
-@import controllers.project.{routes => projectRoutes}
 @import controllers.sugar.Requests.OreRequest
 @import ore.OreConfig
 @import ore.permission.Permission
@@ -66,10 +65,12 @@ The main header displayed on each layout.
                     </a>
                     <ul class="user-dropdown dropdown-menu" aria-label="Create new&hellip;">
                         <li>
+                            @*
                             <a href="@projectRoutes.Projects.showCreator()">
                                 <i class="fas fa-book fa-fw mr-1"></i>
                                 <span>@messages("project.create")</span>
                             </a>
+                            *@
                             <a href="@routes.Organizations.showCreator()">
                                 <i class="fas fa-users fa-fw mr-1"></i>
                                 <span>@messages("org.create")</span>

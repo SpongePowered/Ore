@@ -1,0 +1,13 @@
+{
+  "modid": "basic_test",
+  "name": "Basic",
+  "version": "1.0.0",
+  "dependencies": [
+    "foo",
+    "bar"
+  ],
+  "requiredMods": [
+    "baz",
+    "bin"
+  ]
+}

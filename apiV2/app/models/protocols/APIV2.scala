@@ -3,7 +3,9 @@ package models.protocols
 import java.time.OffsetDateTime
 
 import ore.data.project.Category
+import ore.models.project.Version.{ReleaseType, Stability}
 import ore.models.project.{ReviewState, Visibility}
+import ore.permission.NamedPermission
 
 import enumeratum._
 import enumeratum.values._
@@ -34,6 +36,10 @@ object APIV2 {
   implicit val categoryCodec: Codec[Category]       = valueEnumCodec(Category)(_.apiName)
   implicit val reviewStateCodec: Codec[ReviewState] = valueEnumCodec(ReviewState)(_.apiName)
 
+  implicit val namedPermissionCodec: Codec[NamedPermission] = APIV2.enumCodec(NamedPermission)(_.entryName)
+
+  implicit val permissionRoleCodec: Codec[ore.permission.role.Role] = valueEnumCodec(ore.permission.role.Role)(_.value)
+
   //Project
   @SnakeCaseJsonCodec case class Project(
       createdAt: OffsetDateTime,
@@ -43,12 +49,22 @@ object APIV2 {
       promotedVersions: Seq[PromotedVersion],
       stats: ProjectStatsAll,
       category: Category,
-      description: Option[String],
+      summary: Option[String],
       lastUpdated: OffsetDateTime,
       visibility: Visibility,
       userActions: UserActions,
       settings: ProjectSettings,
-      iconUrl: String
+      iconUrl: String,
+      external: ProjectExternal
+  )
+
+  @SnakeCaseJsonCodec case class ProjectExternal(
+      discourse: ProjectExternalDiscourse
+  )
+
+  @SnakeCaseJsonCodec case class ProjectExternalDiscourse(
+      topicId: Option[Int],
+      postId: Option[Int]
   )
 
   @SnakeCaseJsonCodec case class CompactProject(
@@ -62,26 +78,18 @@ object APIV2 {
   )
 
   @SnakeCaseJsonCodec case class ProjectNamespace(owner: String, slug: String)
-  @SnakeCaseJsonCodec case class PromotedVersion(version: String, tags: Seq[PromotedVersionTag])
-  @SnakeCaseJsonCodec case class PromotedVersionTag(
-      name: String,
-      data: Option[String],
-      displayData: Option[String],
-      minecraftVersion: Option[String],
-      color: VersionTagColor
-  )
-  @SnakeCaseJsonCodec case class VersionTag(name: String, data: Option[String], color: VersionTagColor)
-  @SnakeCaseJsonCodec case class VersionTagColor(foreground: String, background: String)
+  @SnakeCaseJsonCodec case class PromotedVersion(version: String, platforms: Seq[VersionPlatform])
   @SnakeCaseJsonCodec case class ProjectStatsAll(
       views: Long,
       downloads: Long,
-      recent_views: Long,
-      recent_downloads: Long,
+      recentViews: Long,
+      recentDownloads: Long,
       stars: Long,
       watchers: Long
   )
   @SnakeCaseJsonCodec case class UserActions(starred: Boolean, watching: Boolean)
   @SnakeCaseJsonCodec case class ProjectSettings(
+      keywords: Seq[String],
       homepage: Option[String],
       issues: Option[String],
       sources: Option[String],
@@ -91,16 +99,34 @@ object APIV2 {
   )
   @SnakeCaseJsonCodec case class ProjectLicense(name: Option[String], url: Option[String])
 
-  //Project member
-  @SnakeCaseJsonCodec case class ProjectMember(
+  @SnakeCaseJsonCodec case class Member(
       user: String,
-      roles: List[Role]
+      role: Role
+  )
+
+  @SnakeCaseJsonCodec case class Membership(
+      scope: String,
+      organization: Option[MembershipOrganization],
+      project: Option[MembershipProject],
+      role: ore.permission.role.Role,
+      isAccepted: Boolean
+  )
+
+  @SnakeCaseJsonCodec case class MembershipOrganization(
+      name: String
+  )
+
+  @SnakeCaseJsonCodec case class MembershipProject(
+      pluginId: String,
+      namespace: ProjectNamespace
   )
 
   @SnakeCaseJsonCodec case class Role(
-      name: String,
+      name: ore.permission.role.Role,
       title: String,
-      color: String
+      color: String,
+      permissions: List[NamedPermission],
+      isAccepted: Boolean
   )
 
   //Version
@@ -109,15 +135,39 @@ object APIV2 {
       name: String,
       dependencies: List[VersionDependency],
       visibility: Visibility,
-      description: Option[String],
       stats: VersionStatsAll,
       fileInfo: FileInfo,
       author: Option[String],
       reviewState: ReviewState,
-      tags: List[VersionTag]
+      tags: VersionTags,
+      external: VersionExternal
   )
 
-  @SnakeCaseJsonCodec case class VersionDependency(plugin_id: String, version: Option[String])
+  @SnakeCaseJsonCodec case class VersionExternal(
+      discourse: VersionExternalDiscourse
+  )
+
+  @SnakeCaseJsonCodec case class VersionExternalDiscourse(
+      postId: Option[Int]
+  )
+
+  @SnakeCaseJsonCodec case class VersionTags(
+      mixin: Boolean,
+      stability: Stability,
+      releaseType: Option[ReleaseType],
+      platforms: Seq[VersionPlatform]
+  )
+
+  @SnakeCaseJsonCodec case class VersionPlatform(
+      platform: String,
+      platformVersion: Option[String],
+      displayPlatformVersion: Option[String],
+      minecraftVersion: Option[String]
+  )
+
+  @SnakeCaseJsonCodec case class VersionChangelog(changelog: String)
+
+  @SnakeCaseJsonCodec case class VersionDependency(pluginId: String, version: Option[String])
   @SnakeCaseJsonCodec case class VersionStatsAll(downloads: Long)
   @SnakeCaseJsonCodec case class FileInfo(name: String, sizeBytes: Long, md5Hash: String)
 
@@ -127,7 +177,13 @@ object APIV2 {
       name: String,
       tagline: Option[String],
       joinDate: Option[OffsetDateTime],
+      projectCount: Long,
       roles: List[Role]
+  )
+
+  @SnakeCaseJsonCodec case class Organization(
+      owner: String,
+      user: User
   )
 
   @SnakeCaseJsonCodec case class ProjectStatsDay(
@@ -137,5 +193,20 @@ object APIV2 {
 
   @SnakeCaseJsonCodec case class VersionStatsDay(
       downloads: Long
+  )
+
+  @SnakeCaseJsonCodec case class Page(
+      name: String,
+      content: Option[String]
+  )
+
+  @SnakeCaseJsonCodec case class PageList(
+      pages: Seq[PageListEntry]
+  )
+
+  @SnakeCaseJsonCodec case class PageListEntry(
+      name: Seq[String],
+      slug: Seq[String],
+      navigational: Boolean
   )
 }

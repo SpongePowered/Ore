@@ -16,8 +16,8 @@ import akka.http.scaladsl.model.{HttpMethods, HttpRequest, Uri}
 import akka.stream.Materializer
 import cats.Monad
 import cats.data.OptionT
-import cats.effect.{Concurrent, Timer}
 import cats.effect.syntax.all._
+import cats.effect.{Concurrent, Timer}
 import cats.syntax.all._
 import com.typesafe.scalalogging
 

@@ -9,7 +9,6 @@ import ore.auth.{AuthUser, SpongeAuthApi}
 import ore.data.user.notification.NotificationType
 import ore.db.access.ModelView
 import ore.db.impl.OrePostgresDriver.api._
-import ore.db.impl.schema.{OrganizationTable, UserTable}
 import ore.db.{DbRef, Model, ModelService, ObjId}
 import ore.models.organization.Organization
 import ore.models.user.role.OrganizationUserRole
@@ -24,8 +23,6 @@ import cats.effect.{Sync, Timer}
 import cats.syntax.all._
 import cats.tagless.autoFunctorK
 import com.typesafe.scalalogging
-import slick.lifted.TableQuery
-import zio.Schedule
 
 @autoFunctorK
 trait OrganizationBase[+F[_]] {
@@ -141,7 +138,7 @@ object OrganizationBase {
             userOrg <- org.toUser.getOrElseF(F.raiseError(new IllegalStateException("User not created")))
             _       <- userOrg.globalRoles.addAssoc(Role.Organization.toDbRole.id.value)
             _ <- // Add the owner
-            org.memberships.addRole(org)(
+            org.memberships.setRole(org)(
               ownerId,
               OrganizationUserRole(
                 userId = ownerId,
@@ -156,7 +153,7 @@ object OrganizationBase {
 
               members.toVector.parTraverse { role =>
                 // TODO remove role.user db access we really only need the userid we already have for notifications
-                org.memberships.addRole(org)(role.userId, role.copy(organizationId = org.id)).flatMap { _ =>
+                org.memberships.setRole(org)(role.userId, role.copy(organizationId = org.id)).flatMap { _ =>
                   service.insert(
                     Notification(
                       userId = role.userId,

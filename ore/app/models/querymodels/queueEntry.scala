@@ -1,7 +1,6 @@
 package models.querymodels
 import java.time.OffsetDateTime
 
-import ore.data.Color
 import ore.data.project.ProjectNamespace
 import ore.db.DbRef
 import ore.models.user.User
@@ -11,8 +10,6 @@ case class UnsortedQueueEntry(
     projectName: String,
     versionString: String,
     versionCreatedAt: OffsetDateTime,
-    channelName: String,
-    channelColor: Color,
     versionAuthor: Option[String],
     reviewerId: Option[DbRef[User]],
     reviewerName: Option[String],
@@ -28,8 +25,6 @@ case class UnsortedQueueEntry(
           projectName,
           versionString,
           versionCreatedAt,
-          channelName,
-          channelColor,
           versionAuthor,
           reviewerId.get,
           reviewerName.get,
@@ -44,8 +39,6 @@ case class UnsortedQueueEntry(
           projectName,
           versionString,
           versionCreatedAt,
-          channelName,
-          channelColor,
           versionAuthor
         )
       )
@@ -57,8 +50,6 @@ case class ReviewedQueueEntry(
     projectName: String,
     versionString: String,
     versionCreatedAt: OffsetDateTime,
-    channelName: String,
-    channelColor: Color,
     versionAuthor: Option[String],
     reviewerId: DbRef[User],
     reviewerName: String,
@@ -74,7 +65,5 @@ case class NotStartedQueueEntry(
     projectName: String,
     versionString: String,
     versionCreatedAt: OffsetDateTime,
-    channelName: String,
-    channelColor: Color,
     versionAuthor: Option[String]
 )

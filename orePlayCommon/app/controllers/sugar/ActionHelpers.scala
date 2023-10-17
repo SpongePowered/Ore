@@ -1,8 +1,7 @@
 package controllers.sugar
 
-import scala.language.{higherKinds, implicitConversions}
+import scala.language.implicitConversions
 
-import scala.annotation.unused
 import scala.concurrent.Future
 
 import play.api.data.{Form, FormBinding, FormError}
@@ -42,19 +41,6 @@ trait ActionHelpers {
     checkArgument(form.errors.nonEmpty, "no errors", "")
     val errors = form.errors.map(e => s"${e.message}.${e.key}")
     Redirect(call).withErrors(errors.toList)
-  }
-
-  /**
-    * Redirects to the specified call with the errors of the specified
-    * Form.
-    *
-    * @param call Call to redirect to
-    * @param form Form with error
-    * @return     Redirect to call
-    */
-  def FormError(call: Call): Form[_] => Result = form => {
-    checkArgument(form.errors.nonEmpty, "no errors", "")
-    Redirect(call).withFormErrors(form.errors)
   }
 
   implicit def toOreResultOps(result: Result): ActionHelpers.OreResultOps =
@@ -118,62 +104,6 @@ object ActionHelpers {
       * @return        Result with errors
       */
     def withErrors(errors: List[String]): Result = withAlerts("error", errors)
-
-    /**
-      * Adds one or more form error messages to the result.
-      *
-      * @param errors  Error messages
-      * @return        Result with errors
-      */
-    def withFormErrors(errors: Seq[FormError]): Result = withAlerts("error", errors.flatMap(_.messages).toList)
-
-    /**
-      * Adds a success message to the result.
-      *
-      * @param message  Success message
-      * @return         Result with message
-      */
-    def withSuccess(message: String): Result = withAlert("success", message)
-
-    /**
-      * Adds one or more success messages to the result.
-      *
-      * @param messages  Success messages
-      * @return          Result with message
-      */
-    def withSuccesses(messages: List[String]): Result = withAlerts("success", messages)
-
-    /**
-      * Adds a warning info to the result.
-      *
-      * @param message  Info message
-      * @return         Result with message
-      */
-    def withInfo(message: String): Result = withAlert("info", message)
-
-    /**
-      * Adds one or more info messages to the result.
-      *
-      * @param messages  Info messages
-      * @return          Result with message
-      */
-    def withInfo(messages: List[String]): Result = withAlerts("info", messages)
-
-    /**
-      * Adds a warning message to the result.
-      *
-      * @param message  Warning message
-      * @return         Result with message
-      */
-    def withWarning(message: String): Result = withAlert("warning", message)
-
-    /**
-      * Adds one or more warning messages to the result.
-      *
-      * @param messages  Warning messages
-      * @return          Result with message
-      */
-    def withWarnings(messages: List[String]): Result = withAlerts("warning", messages)
   }
 
   class FormBindOps[A](private val form: Form[A]) extends AnyVal {

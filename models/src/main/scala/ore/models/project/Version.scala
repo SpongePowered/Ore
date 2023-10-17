@@ -1,7 +1,5 @@
 package ore.models.project
 
-import scala.language.higherKinds
-
 import java.time.OffsetDateTime
 
 import ore.data.project.Dependency
@@ -12,31 +10,32 @@ import ore.db.impl.common.{Describable, Hideable}
 import ore.db.impl.schema._
 import ore.db.{DbRef, Model, ModelQuery, ModelService}
 import ore.models.admin.{Review, VersionVisibilityChange}
-import ore.models.statistic.VersionDownload
 import ore.models.user.User
 import ore.syntax._
 import ore.util.FileUtils
 
 import cats.data.OptionT
 import cats.syntax.all._
-import cats.{Monad, MonadError, Parallel}
+import cats.{Monad, Parallel}
+import enumeratum.values._
+import io.circe._
+import io.circe.syntax._
 import slick.lifted.TableQuery
 
 /**
   * Represents a single version of a Project.
   *
   * @param versionString    Version string
-  * @param dependencyIds    List of plugin dependencies with the plugin ID and
-  *                         version separated by a ':'
+  * @param dependencyIds    List of plugin dependencies with the plugin ID
+  * @param dependencyVersions    List of plugin dependencies with the plugin version
   * @param description     User description of version
   * @param projectId        ID of project this version belongs to
-  * @param channelId        ID of channel this version belongs to
   */
 case class Version(
     projectId: DbRef[Project],
     versionString: String,
     dependencyIds: List[String],
-    channelId: DbRef[Channel],
+    dependencyVersions: List[Option[String]],
     fileSize: Long,
     hash: String,
     authorId: Option[DbRef[User]],
@@ -47,7 +46,8 @@ case class Version(
     visibility: Visibility = Visibility.Public,
     fileName: String,
     createForumPost: Boolean = true,
-    postId: Option[Int] = None
+    postId: Option[Int] = None,
+    tags: Version.VersionTags
 ) extends Describable {
 
   //TODO: Check this in some way
@@ -61,25 +61,11 @@ case class Version(
   def name: String = this.versionString
 
   /**
-    * Returns the channel this version belongs to.
-    *
-    * @return Channel
-    */
-  def channel[F[_]: ModelService](implicit F: MonadError[F, Throwable]): F[Model[Channel]] =
-    ModelView
-      .now(Channel)
-      .get(this.channelId)
-      .getOrElseF(F.raiseError(new NoSuchElementException("None of Option")))
-
-  /**
     * Returns the base URL for this Version.
     *
     * @return Base URL for version
     */
   def url(project: Project): String = project.url + "/versions/" + this.versionString
-
-  def author[QOptRet, SRet[_]](view: ModelView[QOptRet, SRet, VersionTagTable, Model[VersionTag]]): Option[QOptRet] =
-    this.authorId.map(view.get)
 
   def reviewer[QOptRet, SRet[_]](view: ModelView[QOptRet, SRet, UserTable, Model[User]]): Option[QOptRet] =
     this.reviewerId.map(view.get)
@@ -90,10 +76,7 @@ case class Version(
     * @return Plugin dependencies
     */
   def dependencies: List[Dependency] =
-    for (depend <- this.dependencyIds) yield {
-      val data = depend.split(":")
-      Dependency(data(0), data.lift(1))
-    }
+    dependencyIds.zip(dependencyVersions).map(Dependency.tupled)
 
   /**
     * Returns true if this version has a dependency on the specified plugin ID.
@@ -101,7 +84,7 @@ case class Version(
     * @param pluginId Id to check for
     * @return         True if has dependency on ID
     */
-  def hasDependency(pluginId: String): Boolean = this.dependencies.exists(_.pluginId == pluginId)
+  def hasDependency(pluginId: String): Boolean = this.dependencyIds.contains(pluginId)
 
   /**
     * Returns a human readable file size for this Version.
@@ -115,6 +98,55 @@ case class Version(
 }
 
 object Version extends DefaultModelCompanion[Version, VersionTable](TableQuery[VersionTable]) {
+
+  case class VersionTags(
+      usesMixin: Boolean,
+      stability: Stability,
+      releaseType: Option[ReleaseType],
+      channelName: Option[String] = None,
+      channelColor: Option[TagColor] = None
+  )
+
+  sealed abstract class Stability(val value: String) extends StringEnumEntry
+  object Stability extends StringEnum[Stability] {
+    override def values: IndexedSeq[Stability] = findValues
+
+    case object Recommended extends Stability("recommended")
+    case object Stable      extends Stability("stable")
+    case object Beta        extends Stability("beta")
+    case object Alpha       extends Stability("alpha")
+    case object Bleeding    extends Stability("bleeding")
+    case object Unsupported extends Stability("unsupported")
+    case object Broken      extends Stability("broken")
+
+    implicit val codec: Codec[Stability] = Codec.from(
+      (c: HCursor) =>
+        c.as[String]
+          .flatMap { str =>
+            withValueOpt(str).toRight(io.circe.DecodingFailure.apply(s"$str is not a valid stability", c.history))
+          },
+      (a: Stability) => a.value.asJson
+    )
+  }
+
+  sealed abstract class ReleaseType(val value: String) extends StringEnumEntry
+  object ReleaseType extends StringEnum[ReleaseType] {
+    override def values: IndexedSeq[ReleaseType] = findValues
+
+    case object MajorUpdate extends ReleaseType("major_update")
+    case object MinorUpdate extends ReleaseType("minor_update")
+    case object Patches     extends ReleaseType("patches")
+    case object Hotfix      extends ReleaseType("hotfix")
+
+    implicit val codec: Codec[ReleaseType] = Codec.from(
+      (c: HCursor) =>
+        c.as[String]
+          .flatMap { str =>
+            withValueOpt(str).toRight(io.circe.DecodingFailure.apply(s"$str is not a valid release type", c.history))
+          },
+      (a: ReleaseType) => a.value.asJson
+    )
+  }
 
   implicit val query: ModelQuery[Version] = ModelQuery.from(this)
 
@@ -172,11 +204,6 @@ object Version extends DefaultModelCompanion[Version, VersionTable](TableQuery[V
   }
 
   implicit class VersionModelOps(private val self: Model[Version]) extends AnyVal {
-
-    def tags[V[_, _]: QueryView](
-        view: V[VersionTagTable, Model[VersionTag]]
-    ): V[VersionTagTable, Model[VersionTag]] =
-      view.filterView(_.versionId === self.id.value)
 
     def reviewEntries[V[_, _]: QueryView](view: V[ReviewTable, Model[Review]]): V[ReviewTable, Model[Review]] =
       view.filterView(_.versionId === self.id.value)

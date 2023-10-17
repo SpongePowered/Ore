@@ -30,7 +30,7 @@ POST http://localhost:9000/api/v2/authenticate
 Accept: application/json
 Content-Type: application/json
 
-{"fake": true}
+{"_fake": true}
 
 > {% client.global.set("api_session", response.body.session); %}
 
@@ -76,32 +76,42 @@ Authorization: OreApi session={{api_session}}
 Accept: application/json
 
 ### Get single project
-GET http://localhost:9000/api/v2/projects/nucleus
+GET http://localhost:9000/api/v2/projects/Nucleus/Nucleus
 Authorization: OreApi session={{api_session}}
 Accept: application/json
 
 ### Get project members
-GET http://localhost:9000/api/v2/projects/nucleus/members
+GET http://localhost:9000/api/v2/projects/Nucleus/Nucleus/members
 Authorization: OreApi session={{api_session}}
 Accept: application/json
 
 ### Get project stats
-GET http://localhost:9000/api/v2/projects/nucleus/stats?fromDate=2019-06-01&toDate=2019-10-13
+GET http://localhost:9000/api/v2/projects/Nucleus/Nucleus/stats?fromDate=2019-06-01&toDate=2019-10-13
 Authorization: OreApi session={{api_session}}
 Accept: application/json
 
 ### Get project versions
+GET http://localhost:9000/api/v2/projects/Nucleus/Nucleus/versions
+Authorization: OreApi session={{api_session}}
+Accept: application/json
+
+### Test old pluginId GET
 GET http://localhost:9000/api/v2/projects/nucleus/versions
 Authorization: OreApi session={{api_session}}
 Accept: application/json
 
 ### Get single project versions
-GET http://localhost:9000/api/v2/projects/nucleus/versions/1.9.0-S7.1
+GET http://localhost:9000/api/v2/projects/Nucleus/Nucleus/versions/1.9.0-S7.1
+Authorization: OreApi session={{api_session}}
+Accept: application/json
+
+### Get the description of a versions
+GET http://localhost:9000/api/v2/projects/Nucleus/Nucleus/versions/1.9.0-S7.1/description
 Authorization: OreApi session={{api_session}}
 Accept: application/json
 
 ### Get version stats
-GET http://localhost:9000/api/v2/projects/nucleus/versions/1.9.0-S7.1/stats?fromDate=2019-06-01&toDate=2019-10-13
+GET http://localhost:9000/api/v2/projects/Nucleus/Nucleus/versions/1.9.0-S7.1/stats?fromDate=2019-06-01&toDate=2019-10-13
 Authorization: OreApi session={{api_session}}
 Accept: application/json
 
