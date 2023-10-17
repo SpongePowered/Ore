@@ -67,7 +67,7 @@ trait APIV2Queries extends DoobieOreProtocol {
     (sql"SELECT COUNT(*) FROM " ++ Fragments.parentheses(select) ++ fr"sq").query[Long]
 
   def visibilityFrag(canSeeHidden: Boolean, currentUserId: Option[DbRef[User]], table: Fragment): Option[Fragment] = {
-    Option.when(canSeeHidden) {
+    Option.when(!canSeeHidden) {
       currentUserId.fold(fr"($table.visibility = 1 OR $table.visibility = 2)") { id =>
         fr"($table.visibility = 1 OR $table.visibility = 2 OR ($id IN (SELECT pm.user_id FROM project_members_all pm WHERE pm.id = p.id) AND $table.visibility != 5))"
       }
