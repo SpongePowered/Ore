@@ -17,7 +17,7 @@
   },
   security: {
     api: {
-      avatarUrl: "http://localhost:8000/avatar/{0}?size=120x120"
+      avatarUrl: "http://localhost:8000/avatar/{0}?size=120x120",
       url: ""
     }
   },
