@@ -355,7 +355,7 @@ object OreConfig {
   case class Sponge(
       logo: String,
       service: String,
-      sponsors: Seq[Logo]
+      sponsors: Seq[Sponsor]
   )
 
   case class Auth(
@@ -414,4 +414,4 @@ object OreConfig {
   )
 }
 
-case class Logo(name: String, image: String, link: String)
+case class Sponsor(name: String, image: String, link: String, weight: Int)

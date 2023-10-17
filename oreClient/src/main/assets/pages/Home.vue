@@ -169,8 +169,19 @@ export default {
       )
     },
     randomSponsor() {
-      const index = Math.floor(Math.random() * sponsors.length)
-      return sponsors[index]
+      const totalWeight = sponsors.map((s) => s.weight).reduce((acc, n) => acc + n, 0)
+      let randomNumber = Math.floor(Math.random() * totalWeight)
+
+      return (
+        sponsors.find((sponsor) => {
+          if (randomNumber < sponsor.weight) {
+            return true
+          } else {
+            randomNumber -= sponsor.weight
+            return false
+          }
+        }) ?? sponsors[sponsors.length - 1]
+      )
     },
   },
   watch: {

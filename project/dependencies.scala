@@ -20,7 +20,7 @@ object Version {
   val circeYaml       = "0.13.1"
 
   val akka         = "2.6.15"
-  val akkaHttp     = "10.1.14"
+  val akkaHttp     = "10.1.15"
   val scalaLogging = "3.9.4"
 
   val simulacrum = "0.19.0"

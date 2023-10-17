@@ -2,8 +2,10 @@ package db.impl.access
 
 import scala.language.higherKinds
 
+import scala.concurrent.duration._
+
 import ore.OreConfig
-import ore.auth.SpongeAuthApi
+import ore.auth.{AuthUser, SpongeAuthApi}
 import ore.data.user.notification.NotificationType
 import ore.db.access.ModelView
 import ore.db.impl.OrePostgresDriver.api._
@@ -17,7 +19,7 @@ import util.syntax._
 
 import cats.Parallel
 import cats.data.{EitherT, NonEmptyList}
-import cats.effect.Sync
+import cats.effect.{Sync, Timer}
 import cats.syntax.all._
 import cats.tagless.autoFunctorK
 import com.typesafe.scalalogging
@@ -58,7 +60,8 @@ object OrganizationBase {
       config: OreConfig,
       auth: SpongeAuthApi[F],
       F: Sync[F],
-      par: Parallel[F]
+      par: Parallel[F],
+      timer: Timer[F]
   ) extends OrganizationBase[F] {
 
     private val Logger    = scalalogging.Logger("Organizations")
@@ -86,11 +89,30 @@ object OrganizationBase {
       val dummyEmail   = name.replaceAll("[^a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]", "") + '@' + config.ore.orgs.dummyEmailDomain
       val spongeResult = EitherT.right[List[String]](logging) *> EitherT(auth.createDummyUser(name, dummyEmail))
 
+      def waitTilUserExists(authUser: AuthUser, sleepDur: FiniteDuration, sleptTime: FiniteDuration): F[Boolean] = {
+        val hasUser = ModelView.now(User).get(authUser.id).isDefined
+
+        //Do a quick check first if the user is already present
+        hasUser.flatMap {
+          case true => F.pure(true)
+          case false =>
+            if (sleptTime > 20.seconds) F.pure(false)
+            else timer.sleep(sleepDur) *> waitTilUserExists(authUser, sleepDur * 2, sleptTime + sleepDur * 2)
+        }
+      }
+
       // Check for error
       spongeResult
         .leftMap { err =>
           MDCLogger.debug("<FAILURE> " + err)
           err
+        }
+        .flatMap { spongeUser =>
+          EitherT.right[List[String]](waitTilUserExists(spongeUser, 50.millis, 0.millis)).flatMap {
+            case true => EitherT.rightT[F, List[String]](spongeUser)
+            // Exit early if we never got the user
+            case false => EitherT.leftT[F, AuthUser](List("Timed out while waiting for SSO sync"))
+          }
         }
         .semiflatMap { spongeUser =>
           MDCLogger.debug("<SUCCESS> " + spongeUser)
