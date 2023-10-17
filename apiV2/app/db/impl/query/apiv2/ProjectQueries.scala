@@ -96,7 +96,7 @@ object ProjectQueries extends APIV2Queries {
                 |    FROM (SELECT unnest(ppv.platforms)                AS platform,
                 |                 unnest(ppv.platform_coarse_versions) AS platform_coarse_version,
                 |                 ppv.stability
-                |              FROM promoted_versions ppv) AS promoted """.stripMargin ++
+                |              FROM promoted_versions ppv WHERE ppv.project_id = p.id) AS promoted """.stripMargin ++
             Fragments.whereAndOpt(
               NonEmptyList
                 .fromList(platformsWithVersion)

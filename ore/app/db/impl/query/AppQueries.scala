@@ -208,7 +208,6 @@ object AppQueries extends DoobieOreProtocol {
         fr"LIMIT $limit OFFSET $offset"
     ).query[DbRef[Project]]
 
-    println(res.sql)
     res
   }
 }

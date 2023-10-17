@@ -440,7 +440,6 @@ class Projects(
         .map { project =>
           val urlOwner = URLEncoder.encode(project.ownerName, "UTF-8")
           val urlSlug  = URLEncoder.encode(project.slug, "UTF-8")
-          println(s"/api/v2/projects/$urlOwner/$urlSlug/$path")
           Redirect(
             s"/api/v2/projects/$urlOwner/$urlSlug/$path",
             request.queryString ++ Map("ore-dont-pluginid-redirect" -> Seq("true")),

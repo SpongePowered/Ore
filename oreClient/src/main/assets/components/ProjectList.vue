@@ -159,7 +159,7 @@ export default {
     this.update()
     this.debouncedUpdateProps = debounce(this.update, 500)
     this.$watch(
-      (vm) => [vm.q, vm.categories, vm.tags, vm.owner, vm.sort, vm.relevance, vm.limit, vm.offset].join(),
+      (vm) => [vm.q, vm.categories, vm.platforms, vm.owner, vm.sort, vm.relevance, vm.limit, vm.offset].join(),
       () => {
         this.debouncedUpdateProps()
       }

@@ -113,8 +113,6 @@ object ProjectBase {
           p <- TableQuery[ProjectTable] if v.projectId === p.id
         } yield (p.ownerName, p.name, v)
 
-      println(s"Foobar: ${allVersions.result.statements.toVector}")
-
       service.runDBIO(allVersions.result).flatMap { versions =>
         fileIO
           .traverseLimited(versions.toVector) {
