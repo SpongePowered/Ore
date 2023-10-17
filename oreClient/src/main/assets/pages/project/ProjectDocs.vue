@@ -166,7 +166,7 @@
           </template>
         </div>
 
-        <page-list :pages="groupedPages" :include-home="true" @edit-page="startEditPage" />
+        <page-list :pages="groupedPages" @edit-page="startEditPage" />
       </div>
 
       <member-list
@@ -217,33 +217,34 @@ export default {
       return jsRoutes.controllers.project
     },
     groupedPages() {
-      const nonHome = this.pages.filter((p) => p.slug.length !== 1 || p.slug[0].toLowerCase() !== 'home')
       const acc = {}
 
-      for (const page of nonHome) {
+      for (const page of this.pages) {
         let obj = acc
 
-        for (let i = 0; i < page.slug.length - 1; i++) {
-          const k = page.slug[i]
+        for (const k of page.slug.slice(0, -1)) {
           if (typeof obj[k] === 'undefined') {
-            obj[k] = {}
+            obj[k] = {
+              children: {},
+              navigational: false,
+              slug: [],
+              name: '',
+            }
           }
 
-          if (typeof obj[k].children === 'undefined') {
-            obj[k].children = {}
-          }
-
-          obj = obj[k].children
+          obj = acc[k].children
         }
 
         const key = page.slug[page.slug.length - 1]
-        if (typeof obj[key] === 'undefined') {
-          obj[key] = {}
+        const oldChildren = obj[key]?.children ?? {}
+        const isHome = page.slug.length === 1 && page.slug[0] === 'home'
+        obj[key] = {
+          slug: page.slug,
+          name: page.name,
+          navigational: page.navigational,
+          children: oldChildren,
+          isHome,
         }
-
-        obj[key].slug = page.slug
-        obj[key].name = page.name
-        obj[key].navigational = page.navigational
       }
 
       return acc

@@ -77,6 +77,12 @@ export class API {
           level: 'error',
           messages: jsonError.api_errors,
         })
+      } else if (jsonError.error) {
+        store.commit({
+          type: 'addAlert',
+          level: 'error',
+          message: jsonError.error,
+        })
       }
 
       throw res.status

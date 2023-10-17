@@ -1,7 +1,7 @@
 <template>
   <li class="list-group-item">
     <a
-      v-if="page.children"
+      v-if="hasChildren"
       :class="expandedChildren ? 'page-collapse' : 'page-expand'"
       @click="expandedChildren = !expandedChildren"
     >
@@ -10,7 +10,7 @@
     <router-link
       v-if="!page.navigational"
       v-slot="{ href, navigate }"
-      :to="{ name: 'pages', params: { page: page.slug } }"
+      :to="page.isHome ? { name: 'project_home' } : { name: 'pages', params: { page: page.slug } }"
     >
       <a :href="href" @click="navigate">{{ page.name[page.name.length - 1] }}</a>
     </router-link>
@@ -18,7 +18,7 @@
       {{ page.name[page.name.length - 1] }}
     </span>
 
-    <div v-if="permissions.includes('edit_page')" class="pull-right">
+    <div v-if="permissions.includes('edit_page') && !page.isHome" class="pull-right">
       <a href="#" @click="$emit('edit-page', page)">
         <FontAwesomeIcon style="padding-left: 5px" :icon="['fas', 'edit']" />
       </a>
@@ -50,6 +50,11 @@ export default {
       expandedChildren: false,
     }
   },
-  computed: mapState('project', ['permissions']),
+  computed: {
+    ...mapState('project', ['permissions']),
+    hasChildren() {
+      return Object.entries(this.page.children).length > 0
+    },
+  },
 }
 </script>

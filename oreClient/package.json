@@ -2,6 +2,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "build": "webpack --config webpack.config.prod.js",
     "builddev": "webpack --config webpack.config.dev.js",
     "start": "webpack-dev-server --open --hot --config webpack.config.dev.js",
     "lint:js": "eslint --ext .js,.mjs,.vue .",

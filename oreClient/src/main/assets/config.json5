@@ -17,7 +17,8 @@
   },
   security: {
     api: {
-      avatarUrl: "https://auth.spongepowered.org/avatar/{0}?size=120x120"
+      avatarUrl: "https://auth.spongepowered.org/avatar/{0}?size=120x120",
+      url: ""
     }
   },
   discourse: {
