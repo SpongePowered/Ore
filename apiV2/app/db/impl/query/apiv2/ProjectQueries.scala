@@ -157,7 +157,7 @@ object ProjectQueries extends APIV2Queries {
 
       // 1483056000 is the Ore epoch
       // 86400 seconds to days
-      // 604800‬ seconds to weeks
+      // 604800 seconds to weeks
       order match {
         case ProjectSortingStrategy.MostStars     => fr"ps.stars *" ++ relevance
         case ProjectSortingStrategy.MostDownloads => fr"(ps.downloads / 100) *" ++ relevance

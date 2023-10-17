@@ -33,9 +33,6 @@
         <OnMatch>DENY</OnMatch>
     </turboFilter>
 
-    <!-- Shutdown gracefully -->
-    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
-
     <!-- Play -->
     <logger name="play" level="INFO" />
     <logger name="application" level="INFO" />
