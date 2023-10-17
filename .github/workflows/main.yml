@@ -38,6 +38,7 @@ jobs:
         with:
           node-version: 16.16.0
           cache: 'yarn'
+          cache-dependency-path: ${{env.client-dir}}/yarn.lock
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -81,6 +82,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: 'yarn'
+          cache-dependency-path: ${{env.client-dir}}/yarn.lock
 
       - name: Install dependencies
         run: yarn install
